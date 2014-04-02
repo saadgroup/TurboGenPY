@@ -1,0 +1,567 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+\usepackage{txfonts}
+
+
+
+\usepackage{babel}
+\end_preamble
+\use_default_options false
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding latin9
+\fontencoding T1
+\font_roman times
+\font_sans default
+\font_typewriter mathptmx
+\font_default_family rmdefault
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 12
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_amsmath 2
+\use_esint 0
+\use_mhchem 2
+\use_mathdots 2
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2cm
+\topmargin 2cm
+\rightmargin 2cm
+\bottommargin 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Synthetic Isotropic Turbulence based on a Specified Energy Spectrum
+\end_layout
+
+\begin_layout Author
+Tony Saad
+\end_layout
+
+\begin_layout Abstract
+Given a turbulent energy spectrum, the task is to generate an isotropic
+ turbulent velocity field that reproduces the input spectrum.
+ I will use Lars Davidson's 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "davidson2008hybrid"
+
+\end_inset
+
+ formulation for generating inlet turbulent data.
+ His method is easily extendable to three dimensions as well as different
+ resolutions in space.
+ 
+\end_layout
+
+\begin_layout Section
+Formulation
+\end_layout
+
+\begin_layout Standard
+We start with a generalized Fourier series for a real valued scalar function
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+u=a_{0}+\sum_{m=1}^{M}a_{m}\cos(\frac{2\pi mx}{L})+b_{m}\sin(\frac{2\pi mx}{L})
+\end{equation}
+
+\end_inset
+
+For simplicity, we set 
+\begin_inset Formula $k_{m}\equiv\frac{2\pi m}{L}$
+\end_inset
+
+ as the 
+\begin_inset Formula $m$
+\end_inset
+
+-th wave number.
+ Also, if the mean of 
+\begin_inset Formula $f$
+\end_inset
+
+ is known, we have
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\int_{0}^{L}u\,\text{d}x=a_{0}
+\end{equation}
+
+\end_inset
+
+Hence, for a turbulent velocity field with zero mean (in space), we can
+ set 
+\begin_inset Formula $a_{0}=0$
+\end_inset
+
+.
+ At the outset, we have
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+u=\sum_{m=1}^{M}a_{m}\cos(k_{m}x)+b_{m}\sin(k_{m}x)
+\end{equation}
+
+\end_inset
+
+We now introduce the following changes
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+a_{m}=\hat{u}_{m}\cos(\psi_{m});\quad b_{m}=\hat{u}_{m}\sin(\psi_{m});\quad\hat{u}_{m}^{2}=a_{m}^{2}+b_{m}^{2},\quad\psi_{m}=\arctan(\frac{b_{m}}{a_{m}})
+\end{equation}
+
+\end_inset
+
+then
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\begin{alignedat}{1}a_{m}\cos(k_{m}x)+b_{m}\sin(k_{m}x) & =\hat{u}_{m}\cos\alpha_{m}\cos(k_{m}x)+\hat{u}_{m}\sin\alpha_{m}\sin(k_{m}x)\\
+ & =\hat{u}_{m}\cos(k_{m}x-\psi_{m})
+\end{alignedat}
+\end{equation}
+
+\end_inset
+
+so that
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+u=\sum_{n=1}^{M}\hat{u}_{m}\cos(k_{m}x-\psi_{m})
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{multline*}
+\\
+\end{multline*}
+
+\end_inset
+
+The extension to 3D follows
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+u=\sum_{n=1}^{M}\hat{u}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\varv=\sum_{n=1}^{M}\hat{\varv}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+w=\sum_{n=1}^{M}\hat{w}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $\mathbf{k}_{m}\equiv(k_{x,n},k_{y,n},k_{z,n})$
+\end_inset
+
+ is the position vector in wave space and 
+\begin_inset Formula $\mathbf{x}\equiv(x,y,z)$
+\end_inset
+
+ is the position vector in physical space.
+ Therefore, 
+\begin_inset Formula $\mathbf{k}_{m}\cdot\mathbf{x}_{m}=k_{x,n}x+k_{y,n}y+k_{z,n}z$
+\end_inset
+
+.
+ A condensed form is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\mathbf{u}=\sum_{n=1}^{N}\hat{\mathbf{u}}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $\hat{\mathbf{u}}_{m}\equiv(\hat{u}_{m},\hat{\varv}_{m},\hat{w}_{m})$
+\end_inset
+
+.
+ Continuity dictates that
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{\partial u}{\partial x}+\frac{\partial\varv}{y}+\frac{\partial w}{\partial z}=0
+\end{equation}
+
+\end_inset
+
+or
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+-\sum_{n=1}^{N}\left(k_{x,n}\hat{u}_{m}+k_{y,n}\hat{\varv}_{m}+k_{z,n}\hat{w}_{m}\right)\sin(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})=0
+\end{equation}
+
+\end_inset
+
+Finally, this means that the wave vector is perpendicular to the fourier
+ coefficients
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{k}_{m}\cdot\hat{\mathbf{u}}_{m}=0
+\]
+
+\end_inset
+
+This means that the fourier coefficients have different directions in the
+ wave space.
+ We therefore write the fourier coefficients as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\hat{\mathbf{u}}_{m}\equiv q_{m}\boldsymbol{\sigma}_{m};\quad\mathbf{k}_{m}\cdot\boldsymbol{\sigma}_{m}=0
+\end{equation}
+
+\end_inset
+
+so that
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\mathbf{u}=\sum_{n=1}^{N}q_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})\boldsymbol{\sigma}_{m}
+\end{equation}
+
+\end_inset
+
+The last step is to link 
+\begin_inset Formula $q_{m}$
+\end_inset
+
+ to the energy spectrum
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+q_{m}=2\sqrt{E(k_{m})\Delta k}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+In Practice
+\end_layout
+
+\begin_layout Itemize
+Specify the number of modes 
+\begin_inset Formula $M$
+\end_inset
+
+.
+ This will determine the Fourier representation of the velocity field at
+ every point in the spatial domain 
+\end_layout
+
+\begin_layout Itemize
+Compute or set a minimum wave number 
+\begin_inset Formula $k_{0}$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Itemize
+Compute a maximum wave number 
+\begin_inset Formula $k_{\text{max }}=\frac{2\pi}{\Delta x}$
+\end_inset
+
+.
+ For multidimensions, use 
+\begin_inset Formula $k_{\text{max}}=\max(\frac{2\pi}{\Delta x},\frac{2\pi}{\Delta y},\frac{2\pi}{\Delta z})$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Itemize
+Generate a list of 
+\begin_inset Formula $M$
+\end_inset
+
+ modes: 
+\begin_inset Formula $k_{m}\equiv k(m)=k_{0}+\frac{k_{\text{max}}-k_{\text{0}}}{M}(m-1)$
+\end_inset
+
+.
+ Those will correspond to the magnitude of the vector 
+\begin_inset Formula $\mathbf{k}_{m}$
+\end_inset
+
+.
+ In other words, 
+\begin_inset Formula $k_{m}$
+\end_inset
+
+ is the radius of a sphere.
+ 
+\end_layout
+
+\begin_layout Itemize
+Generate a four arrays of random numbers, each of which is of size M (those
+ will be needed next).
+ Those will correspond to the angles: 
+\begin_inset Formula $\theta_{m}$
+\end_inset
+
+, 
+\begin_inset Formula $\varphi_{m}$
+\end_inset
+
+, 
+\begin_inset Formula $\psi_{m}$
+\end_inset
+
+, and 
+\begin_inset Formula $\alpha_{m}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+Compute the wave vectors.
+ To generate as much randomness as possible, we write the wave vector as
+ a function of two angles in 3D space.
+ This means
+\begin_inset Newline newline
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+k_{x,m}=\sin(\theta_{m})\cos(\varphi_{m})k_{m}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+k_{y,m}=\sin(\theta_{m})\sin(\varphi_{m})k_{m}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+k_{x,m}=\cos(\theta_{m})k_{m}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Compute the unit vector 
+\begin_inset Formula $\boldsymbol{\sigma}_{m}$
+\end_inset
+
+.
+ Note that 
+\begin_inset Formula $\boldsymbol{\sigma}_{m}$
+\end_inset
+
+ lies in a plane perpendicular to the vecotr 
+\begin_inset Formula $\mathbf{k}_{m}$
+\end_inset
+
+.
+ We choose the following
+\begin_inset Newline newline
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\sigma_{x,m}=\cos(\theta_{m})\cos(\varphi_{m})\cos(\alpha_{m})-\sin(\varphi_{m})\sin(\alpha_{m})
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\sigma_{y,m}=\cos(\theta_{m})\sin(\varphi_{m})\cos(\alpha_{m})+\cos(\varphi_{m})\sin(\alpha_{m})
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\sigma_{z,m}=-\sin(\theta_{m})\cos(\alpha_{m})
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Once those quantities are computed, loop over the mesh.
+ For every point on the mesh, loop over all M modes.
+ For every mode, compute 
+\begin_inset Formula $q_{m}=2\sqrt{E(k_{m})\Delta k}$
+\end_inset
+
+ and 
+\begin_inset Formula $\beta_{m}=\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m}$
+\end_inset
+
+.
+ Finally, construct the following summations (at every point you will have
+ a summation of 
+\begin_inset Formula $M$
+\end_inset
+
+-modes)
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+u=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{x,m}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\varv=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{y,m}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+w=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{z,m}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+bibfiles "references"
+options "plain"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

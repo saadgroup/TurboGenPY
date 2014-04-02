@@ -143,8 +143,7 @@ for k=1:nz
         end
     end
 end
-str=['Done generating fluctuations. It took me ' , num2str(toc), 's'];
-display(str);
+display(['Done generating fluctuations. It took me ' , num2str(toc), 's']);
 
 %% CALCULATE TURBULENT KE SPECTRUM TO MAKE SURE THINGS MAKE SENSE
 [wn,vt]=tke_spectrum(u_,v_,w_,Lx, Ly, Lz); 

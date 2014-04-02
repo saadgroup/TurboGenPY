@@ -68,11 +68,12 @@ zc = dz/2 + (0:nz-1)*dz; % cell centered coordinates
 wn1 = 15; %determined here from spectrum properties
 
 %% START THE FUN!
+tic
 wn=zeros(nmodes,1); % wave number array
 
 % compute random angles
-fi   = 2*pi.*rand(nmodes,1);
 psi  = 2*pi.*rand(nmodes,1);
+fi   = 2*pi.*rand(nmodes,1);
 alfa = 2*pi.*rand(nmodes,1);
 teta = pi.*rand(nmodes,1);
 %ang  = rand(nmodes,1);
@@ -134,14 +135,16 @@ for k=1:nz
     for j=1:ny
         for i=1:nx
             % for every grid point (i,j,k) do the fourier summation 
-            arg = kx.*xc(i) + ky.*yc(j) + kz.*zc(k) + psi;  
-            bm = cos(arg);  
-            u_(i,j,k) = sum(um.*bm.*sxm);  
-            v_(i,j,k) = sum(um.*bm.*sym);  
-            w_(i,j,k) = sum(um.*bm.*szm);
+            arg = kx.*xc(i) + ky.*yc(j) + kz.*zc(k) - psi;  
+            bm = um.*cos(arg);              
+            u_(i,j,k) = sum(bm.*sxm);  
+            v_(i,j,k) = sum(bm.*sym);  
+            w_(i,j,k) = sum(bm.*szm);
         end
     end
 end
+str=['Done generating fluctuations. It took me ' , num2str(toc), 's'];
+display(str);
 
 %% CALCULATE TURBULENT KE SPECTRUM TO MAKE SURE THINGS MAKE SENSE
 [wn,vt]=tke_spectrum(u_,v_,w_,Lx, Ly, Lz); 

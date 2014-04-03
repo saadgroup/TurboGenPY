@@ -3,13 +3,6 @@
 \begin_document
 \begin_header
 \textclass article
-\begin_preamble
-\usepackage{txfonts}
-
-
-
-\usepackage{babel}
-\end_preamble
 \use_default_options false
 \maintain_unincluded_children false
 \language english
@@ -39,7 +32,7 @@
 \use_amsmath 2
 \use_esint 0
 \use_mhchem 2
-\use_mathdots 2
+\use_mathdots 0
 \cite_engine basic
 \use_bibtopic false
 \use_indices false
@@ -116,10 +109,10 @@ For simplicity, we set
 \end_inset
 
  as the 
-\begin_inset Formula $m$
+\begin_inset Formula $m^{\mbox{th}}$
 \end_inset
 
--th wave number.
+ wave number.
  Also, if the mean of 
 \begin_inset Formula $f$
 \end_inset
@@ -191,13 +184,6 @@ u=\sum_{n=1}^{M}\hat{u}_{m}\cos(k_{m}x-\psi_{m})
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\begin{multline*}
-\\
-\end{multline*}
-
-\end_inset
-
 The extension to 3D follows
 \end_layout
 
@@ -215,7 +201,7 @@ u=\sum_{n=1}^{M}\hat{u}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\varv=\sum_{n=1}^{M}\hat{\varv}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+v=\sum_{n=1}^{M}\hat{v}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
 \end{equation}
 
 \end_inset
@@ -257,7 +243,7 @@ where
 \end_inset
 
 where 
-\begin_inset Formula $\hat{\mathbf{u}}_{m}\equiv(\hat{u}_{m},\hat{\varv}_{m},\hat{w}_{m})$
+\begin_inset Formula $\hat{\mathbf{u}}_{m}\equiv(\hat{u}_{m},\hat{v}_{m},\hat{w}_{m})$
 \end_inset
 
 .
@@ -267,7 +253,7 @@ where
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\frac{\partial u}{\partial x}+\frac{\partial\varv}{y}+\frac{\partial w}{\partial z}=0
+\frac{\partial u}{\partial x}+\frac{\partial v}{y}+\frac{\partial w}{\partial z}=0
 \end{equation}
 
 \end_inset
@@ -278,12 +264,12 @@ or
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
--\sum_{n=1}^{N}\left(k_{x,n}\hat{u}_{m}+k_{y,n}\hat{\varv}_{m}+k_{z,n}\hat{w}_{m}\right)\sin(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})=0
+-\sum_{n=1}^{N}\left(k_{x,n}\hat{u}_{m}+k_{y,n}\hat{v}_{m}+k_{z,n}\hat{w}_{m}\right)\sin(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})=0
 \end{equation}
 
 \end_inset
 
-Finally, this means that the wave vector is perpendicular to the fourier
+Finally, this means that the wave vector is perpendicular to the Fourier
  coefficients
 \end_layout
 
@@ -295,9 +281,9 @@ Finally, this means that the wave vector is perpendicular to the fourier
 
 \end_inset
 
-This means that the fourier coefficients have different directions in the
+This means that the Fourier coefficients have different directions in the
  wave space.
- We therefore write the fourier coefficients as
+ We therefore write the Fourier coefficients as
 \end_layout
 
 \begin_layout Standard
@@ -403,7 +389,7 @@ Compute a maximum wave number
 \end_inset
 
 .
- For multidimensions, use 
+ For multiple dimensions, use 
 \begin_inset Formula $k_{\text{max}}=\max(\frac{2\pi}{\Delta x},\frac{2\pi}{\Delta y},\frac{2\pi}{\Delta z})$
 \end_inset
 
@@ -500,7 +486,7 @@ Compute the unit vector
 \begin_inset Formula $\boldsymbol{\sigma}_{m}$
 \end_inset
 
- lies in a plane perpendicular to the vecotr 
+ lies in a plane perpendicular to the vector 
 \begin_inset Formula $\mathbf{k}_{m}$
 \end_inset
 
@@ -571,7 +557,7 @@ u=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{x,m}
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\varv=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{y,m}
+v=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{y,m}
 \end{equation}
 
 \end_inset

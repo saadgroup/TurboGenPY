@@ -8,10 +8,10 @@
 \language english
 \language_package default
 \inputencoding latin9
-\fontencoding T1
-\font_roman times
+\fontencoding default
+\font_roman cmr
 \font_sans default
-\font_typewriter mathptmx
+\font_typewriter cmtt
 \font_default_family rmdefault
 \use_non_tex_fonts false
 \font_sc false
@@ -539,11 +539,10 @@ Once those quantities are computed, loop over the mesh.
 \begin_inset Formula $M$
 \end_inset
 
--modes)
-\begin_inset Newline newline
-\end_inset
+-modes
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
 u=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{x,m}

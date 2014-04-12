@@ -42,11 +42,14 @@ ecbc=cbc_spectrum(:,2)*1e-6;
 
 %% USER INPUT
 %set the number of modes.
-nmodes =400; 
+nmodes =100; 
 
-Lx = 9*2*pi/100; % domain size in the x direction
-Ly = 9*2*pi/100; % domain size in the y direction
-Lz = 9*2*pi/100; % domain size in the z direction
+%Lx = 9*2*pi/100; % domain size in the x direction
+%Ly = 9*2*pi/100; % domain size in the y direction
+%Lz = 9*2*pi/100; % domain size in the z direction
+Lx = 2*pi/15;
+Ly = 2*pi/15;
+Lz = 2*pi/15;
 
 nx = 32;         % number of cells in the x direction
 ny = 32;         % number of cells in the y direction
@@ -79,9 +82,9 @@ teta = pi.*rand(nmodes,1);
 %ang  = rand(nmodes,1);
 %teta = acos(1 - ang./0.5);
 
-% highest wave number
-wnn = max(2*pi/dx, max(2*pi/dy, 2*pi/dz));
-
+% highest wave number that can be represented on this grid
+wnn = max(pi/dx, max(pi/dy, pi/dz));
+display(['I will generate data up to wave number: ', num2str(wnn)]);
 % wavenumber step
 dk = (wnn-wn1)/nmodes;
 
@@ -112,7 +115,7 @@ szm = -sin(teta).*cos(alfa);
 
 % verify that the wave vector and sigma are perpendicular
 kk = kx.*sxm + ky.*sym + kz.*szm;
-disp('Orthogonality of k and sigma:');
+disp('Orthogonality of k and sigma (divergence in wave space):');
 disp(norm(kk));
 
 % get the modes   
@@ -209,53 +212,101 @@ disp('Divergence:');
 disp(norm(divn));
 
 %% WRITE TO DISK
+%% u velocity
 fName = 'cbc32_uvw';
 uFileName = strcat(fName,'_wasatch_u');
 uFileID = fopen(uFileName,'w');
 
+nt = (nx+1)*ny*nz;
+xx = zeros(nx+1,ny,nz);
+yx = zeros(nx+1,ny,nz);
+zx = zeros(nx+1,ny,nz);
 for k=1:nz
     for j=1:ny
         for i=1:nx+1
-            x = (i-1)*dx;
-            y = (j-1)*dy + dy/2;
-            z = (k-1)*dz + dz/2;
-            fprintf( uFileID,'%.16f %.16f %.16f %.16f\n',x,y,z,u(i,j,k) );
+            xx(i,j,k) = (i-1)*dx;
+            yx(i,j,k) = (j-1)*dy + dy/2;
+            zx(i,j,k) = (k-1)*dz + dz/2;
         end
     end
 end
+
+xx = reshape(xx,1,nt);
+yx = reshape(yx,1,nt);
+zx = reshape(zx,1,nt);
+u = reshape(u,1,nt);
+
+A=[xx;yx;zx;u];
+fprintf( uFileID,'%.16f %.16f %.16f %.16f\n',A );
 fclose(uFileID);
+clear xx yx zx
 gzip(uFileName);
 delete(uFileName);
+disp('done writing data for u velocity.');
 
+%% v velocity
 vFileName = strcat(fName,'_wasatch_v');
 vFileID = fopen(vFileName,'w');
+
+nt = (ny+1)*nx*nz;
+xy = zeros(nx,ny+1,nz);
+yy = zeros(nx,ny+1,nz);
+zy = zeros(nx,ny+1,nz);
+
 for k=1:nz
     for j=1:ny + 1
         for i=1:nx
-            x = (i-1)*dx + dx/2;
-            y = (j-1)*dy;
-            z = (k-1)*dz + dz/2;
-            fprintf( vFileID,'%.16f %.16f %.16f %.16f\n',x,y,z,v(i,j,k) );
+            xy(i,j,k) = (i-1)*dx + dx/2;
+            yy(i,j,k) = (j-1)*dy;
+            zy(i,j,k) = (k-1)*dz + dz/2;            
         end
     end
 end
+
+
+xy = reshape(xy,1,nt);
+yy = reshape(yy,1,nt);
+zy = reshape(zy,1,nt);
+v = reshape(v,1,nt);
+
+A=[xy;yy;zy;v];
+
+fprintf( vFileID,'%.16f %.16f %.16f %.16f\n',A );
 fclose(vFileID);
+clear xy yy zy
 gzip(vFileName);
 delete(vFileName);
+disp('done writing data for v velocity.');
 
-
+%% w velocity
 wFileName = strcat(fName,'_wasatch_w');
 wFileID = fopen(wFileName,'w');
+
+nt = nx*ny*(nz+1);
+xz = zeros(nx,ny,nz+1);
+yz = zeros(nx,ny,nz+1);
+zz = zeros(nx,ny,nz+1);
+
 for k=1:nz + 1
     for j=1:ny
         for i=1:nx
-            x = (i-1)*dx + dx/2;
-            y = (j-1)*dy + dy/2;
-            z = (k-1)*dz;
-            fprintf( wFileID,'%.16f %.16f %.16f %.16f\n',x,y,z,w(i,j,k) );
+            xz(i,j,k) = (i-1)*dx + dx/2;
+            yz(i,j,k) = (j-1)*dy + dy/2;
+            zz(i,j,k) = (k-1)*dz;
         end
     end
 end
+
+xz = reshape(xz,1,nt);
+yz = reshape(yz,1,nt);
+zz = reshape(zz,1,nt);
+w = reshape(w,1,nt);
+
+A=[xz;yz;zz;w];
+fprintf( wFileID,'%.16f %.16f %.16f %.16f\n',A );
 fclose(wFileID);
+clear xz yz zz A
 gzip(wFileName);
 delete(wFileName);
+
+disp('done writing data for w velocity.');

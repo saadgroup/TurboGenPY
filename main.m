@@ -41,20 +41,42 @@ kcbc=cbc_spectrum(:,1)*100;
 ecbc=cbc_spectrum(:,2)*1e-6; 
 
 %% USER INPUT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ##     ##  ######  ######## ########     #### ##    ## ########  ##     ## ######## 
+% ##     ## ##    ## ##       ##     ##     ##  ###   ## ##     ## ##     ##    ##    
+% ##     ## ##       ##       ##     ##     ##  ####  ## ##     ## ##     ##    ##    
+% ##     ##  ######  ######   ########      ##  ## ## ## ########  ##     ##    ##    
+% ##     ##       ## ##       ##   ##       ##  ##  #### ##        ##     ##    ##    
+% ##     ## ##    ## ##       ##    ##      ##  ##   ### ##        ##     ##    ##    
+%  #######   ######  ######## ##     ##    #### ##    ## ##         #######     ##    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %set the number of modes.
-nmodes =100; 
+nmodes =500; 
+
+% file name base
+fNameBase = 'cbc134_uvw';
+
+%generate staggered velocities
+enableIO = true;
 
 %Lx = 9*2*pi/100; % domain size in the x direction
 %Ly = 9*2*pi/100; % domain size in the y direction
 %Lz = 9*2*pi/100; % domain size in the z direction
+% input domain size in the x, y, and z directions
 Lx = 2*pi/15;
 Ly = 2*pi/15;
 Lz = 2*pi/15;
 
+% input number of cells (cell centered control volumes)
 nx = 32;         % number of cells in the x direction
 ny = 32;         % number of cells in the y direction
 nz = 32;         % number of cells in the z direction
 
+% enter the smallest wavenumber represented by this spectrum
+wn1 = 15; %determined here from cbc spectrum properties
+
+%% grid generation
 % generate cell centered x-grid
 dx = Lx/nx;
 xc = dx/2 + (0:nx-1)*dx;
@@ -67,20 +89,17 @@ yc = dy/2 + (0:ny-1)*dy;
 dz = Lz/nz;
 zc = dz/2 + (0:nz-1)*dz; % cell centered coordinates
 
-% smallest wavenumber - either specified via
-wn1 = 15; %determined here from spectrum properties
-
 %% START THE FUN!
 tic
 wn=zeros(nmodes,1); % wave number array
 
 % compute random angles
-psi  = 2*pi.*rand(nmodes,1);
-fi   = 2*pi.*rand(nmodes,1);
-alfa = 2*pi.*rand(nmodes,1);
-teta = pi.*rand(nmodes,1);
+psi   = 2*pi.*rand(nmodes,1);
+phi   = 2*pi.*rand(nmodes,1);
+alfa  = 2*pi.*rand(nmodes,1);
+theta = pi.*rand(nmodes,1);
 %ang  = rand(nmodes,1);
-%teta = acos(1 - ang./0.5);
+%theta = acos(1 - ang./0.5);
 
 % highest wave number that can be represented on this grid
 wnn = max(pi/dx, max(pi/dy, pi/dz));
@@ -97,21 +116,21 @@ wn = wn';
 dkn = ones(nmodes,1).*dk;
 
 %   wavenumber vector from random angles   
-kx = sin(teta).*cos(fi).*wn;
-ky = sin(teta).*sin(fi).*wn;
-kz = cos(teta).*wn;
+kx = sin(theta).*cos(phi).*wn;
+ky = sin(theta).*sin(phi).*wn;
+kz = cos(theta).*wn;
 
 % sigma is the unit direction which gives the direction of the synthetic
 % velocity field
-sxm = cos(fi).*cos(teta).*cos(alfa) - sin(fi).*sin(alfa);
-sym = sin(fi).*cos(teta).*cos(alfa) + cos(fi).*sin(alfa);
-szm = -sin(teta).*cos(alfa);   
+sxm = cos(phi).*cos(theta).*cos(alfa) - sin(phi).*sin(alfa);
+sym = sin(phi).*cos(theta).*cos(alfa) + cos(phi).*sin(alfa);
+szm = -sin(theta).*cos(alfa);   
 
 % another way of computing sigma. The previous method seems to give better
 % results
-% sxm = cos(fi).*cos(teta).*cos(alfa) - sin(fi).*sin(alfa).*cos(teta);
-% sym = sin(fi).*cos(teta).*cos(alfa) + cos(fi).*sin(alfa).*cos(teta);
-% szm = -sin(teta).*cos(alfa);   
+% sxm = cos(phi).*cos(theta).*cos(alfa) - sin(phi).*sin(alfa).*cos(theta);
+% sym = sin(phi).*cos(theta).*cos(alfa) + cos(phi).*sin(alfa).*cos(theta);
+% szm = -sin(theta).*cos(alfa);   
 
 % verify that the wave vector and sigma are perpendicular
 kk = kx.*sxm + ky.*sym + kz.*szm;
@@ -161,6 +180,7 @@ loglog(kcbc,ecbc,'k');
 u = zeros(nx+1,ny,nz);
 v = zeros(nx,ny+1,nz);
 w = zeros(nx,ny,nz+1);
+
 for i=1:nx-1
     u(i+1,:,:) = 0.5*(u_(i+1,:,:) + u_(i,:,:));    
 end
@@ -182,16 +202,6 @@ end
 w(:,:,1) = 0.5*(w_(:,:,1) + w_(:,:,nz));
 w(:,:,nz+1) = 0.5*(w_(:,:,1) + w_(:,:,nz));
 
-% %set the additional point as periodic
-% u(1:N,:,:) = u_;
-% u(N+1,:,:) = u(1,:,:);
-% 
-% v(:,1:N,:) = v_;
-% v(:,N+1,:) = v(:,1,:);
-% 
-% w(:,:,1:N) = w_;
-% w(:,:,N+1) = w(:,:,1);
-
 %% PLOT A FEW THINGS TO SATISFY THE EYES
 figure(2)
 contourf(u_(:,:,1),10);
@@ -199,114 +209,144 @@ contourf(u_(:,:,1),10);
 %% COMPUTE DIVERGENCE
 % Note: I don't know why I am getting non-zero divergence here although the
 % orthogonality condition for divergence (k.sigma = 0) is satisfied.
-div=zeros(nx,ny,nz);
-for k=1:nz
-    for j=1:ny
-        for i=1:nx
-            div(i,j,k) = div(i,j,k) + (u(i+1,j,k) - u(i,j,k))/dx + (v(i,j+1,k) - v(i,j,k))/dy + (w(i,j,k+1) - w(i,j,k))/dz;
-        end
-    end
-end
-divn = reshape(div,nx*ny*nz,1);
-disp('Divergence:');
-disp(norm(divn));
+% div=zeros(nx,ny,nz);
+% for k=1:nz
+%     for j=1:ny
+%         for i=1:nx
+%             div(i,j,k) = div(i,j,k) + (u(i+1,j,k) - u(i,j,k))/dx + (v(i,j+1,k) - v(i,j,k))/dy + (w(i,j,k+1) - w(i,j,k))/dz;
+%         end
+%     end
+% end
+% divn = reshape(div,nx*ny*nz,1);
+% disp('Divergence:');
+% disp(norm(divn));
 
 %% WRITE TO DISK
-%% u velocity
-fName = 'cbc32_uvw';
-uFileName = strcat(fName,'_wasatch_u');
-uFileID = fopen(uFileName,'w');
+% u velocity
 
-nt = (nx+1)*ny*nz;
-xx = zeros(nx+1,ny,nz);
-yx = zeros(nx+1,ny,nz);
-zx = zeros(nx+1,ny,nz);
-for k=1:nz
-    for j=1:ny
-        for i=1:nx+1
-            xx(i,j,k) = (i-1)*dx;
-            yx(i,j,k) = (j-1)*dy + dy/2;
-            zx(i,j,k) = (k-1)*dz + dz/2;
+if(enableIO)
+
+    uFileName = strcat(fNameBase,'_u');
+    uFileID = fopen(uFileName,'w');
+
+    nt = (nx+1)*ny*nz;
+    xx = zeros(nx+1,ny,nz);
+    yx = zeros(nx+1,ny,nz);
+    zx = zeros(nx+1,ny,nz);
+    for k=1:nz
+        for j=1:ny
+            for i=1:nx+1
+                xx(i,j,k) = (i-1)*dx;
+                yx(i,j,k) = (j-1)*dy + dy/2;
+                zx(i,j,k) = (k-1)*dz + dz/2;
+            end
         end
     end
-end
 
-xx = reshape(xx,1,nt);
-yx = reshape(yx,1,nt);
-zx = reshape(zx,1,nt);
-u = reshape(u,1,nt);
+    xx = reshape(xx,1,nt);
+    yx = reshape(yx,1,nt);
+    zx = reshape(zx,1,nt);
+    u = reshape(u,1,nt);
+    A=[xx;yx;zx;u];
 
-A=[xx;yx;zx;u];
-fprintf( uFileID,'%.16f %.16f %.16f %.16f\n',A );
-fclose(uFileID);
-clear xx yx zx
-gzip(uFileName);
-delete(uFileName);
-disp('done writing data for u velocity.');
+    % tic
+    % xx1=(0:nx)*dx;
+    % xx1=repmat(xx1,1,ny*nz);
+    % 
+    % yx1 = dy/2 + (0:ny-1)*dy;
+    % yx1 = yx1';
+    % yx1 = repmat(yx1,1,nx+1);
+    % yx1=yx1';
+    % yx1 = repmat(yx1,[1,1,nz]);
+    % yx1 = reshape(yx1,1,nt);
+    % 
+    % 
+    % zx1 = ones(nx+1,ny).*dz/2;
+    % 
+    % zx1 = repmat(zx1,1,nx+1);
+    % %zx1 = zx1';
+    % zx1 = repmat(zx1,[1,1,nz]);
+    % zx1 = reshape(zx1,1,nt);
+    % A1=[xx1;yx1;zx1;u];
+    % display(['Done generating secon xstaggered grid. It took me ' , num2str(toc), 's']);
 
-%% v velocity
-vFileName = strcat(fName,'_wasatch_v');
-vFileID = fopen(vFileName,'w');
+    tic
+    fprintf( uFileID,'%.16f %.16f %.16f %.16f\n',A );
+    fclose(uFileID);
+    clear xx yx zx
+    gzip(uFileName);
+    delete(uFileName);
+    display(['Done writing data for u velocity. It took me ' , num2str(toc), 's']);
 
-nt = (ny+1)*nx*nz;
-xy = zeros(nx,ny+1,nz);
-yy = zeros(nx,ny+1,nz);
-zy = zeros(nx,ny+1,nz);
+    %% WRITE TO DISK
+    % v velocity
+    vFileName = strcat(fNameBase,'_v');
+    vFileID = fopen(vFileName,'w');
 
-for k=1:nz
-    for j=1:ny + 1
-        for i=1:nx
-            xy(i,j,k) = (i-1)*dx + dx/2;
-            yy(i,j,k) = (j-1)*dy;
-            zy(i,j,k) = (k-1)*dz + dz/2;            
+    nt = (ny+1)*nx*nz;
+    xy = zeros(nx,ny+1,nz);
+    yy = zeros(nx,ny+1,nz);
+    zy = zeros(nx,ny+1,nz);
+
+    for k=1:nz
+        for j=1:ny + 1
+            for i=1:nx
+                xy(i,j,k) = (i-1)*dx + dx/2;
+                yy(i,j,k) = (j-1)*dy;
+                zy(i,j,k) = (k-1)*dz + dz/2;            
+            end
         end
     end
-end
 
 
-xy = reshape(xy,1,nt);
-yy = reshape(yy,1,nt);
-zy = reshape(zy,1,nt);
-v = reshape(v,1,nt);
+    xy = reshape(xy,1,nt);
+    yy = reshape(yy,1,nt);
+    zy = reshape(zy,1,nt);
+    v = reshape(v,1,nt);
 
-A=[xy;yy;zy;v];
+    A=[xy;yy;zy;v];
 
-fprintf( vFileID,'%.16f %.16f %.16f %.16f\n',A );
-fclose(vFileID);
-clear xy yy zy
-gzip(vFileName);
-delete(vFileName);
-disp('done writing data for v velocity.');
+    tic
+    fprintf( vFileID,'%.16f %.16f %.16f %.16f\n',A );
+    fclose(vFileID);
+    clear xy yy zy
+    gzip(vFileName);
+    delete(vFileName);
+    display(['Done writing data for v velocity. It took me ' , num2str(toc), 's']);
 
-%% w velocity
-wFileName = strcat(fName,'_wasatch_w');
-wFileID = fopen(wFileName,'w');
+    %% WRITE TO DISK
+    % w velocity
+    wFileName = strcat(fNameBase,'_w');
+    wFileID = fopen(wFileName,'w');
 
-nt = nx*ny*(nz+1);
-xz = zeros(nx,ny,nz+1);
-yz = zeros(nx,ny,nz+1);
-zz = zeros(nx,ny,nz+1);
+    nt = nx*ny*(nz+1);
+    xz = zeros(nx,ny,nz+1);
+    yz = zeros(nx,ny,nz+1);
+    zz = zeros(nx,ny,nz+1);
 
-for k=1:nz + 1
-    for j=1:ny
-        for i=1:nx
-            xz(i,j,k) = (i-1)*dx + dx/2;
-            yz(i,j,k) = (j-1)*dy + dy/2;
-            zz(i,j,k) = (k-1)*dz;
+    for k=1:nz + 1
+        for j=1:ny
+            for i=1:nx
+                xz(i,j,k) = (i-1)*dx + dx/2;
+                yz(i,j,k) = (j-1)*dy + dy/2;
+                zz(i,j,k) = (k-1)*dz;
+            end
         end
     end
+
+    xz = reshape(xz,1,nt);
+    yz = reshape(yz,1,nt);
+    zz = reshape(zz,1,nt);
+    w = reshape(w,1,nt);
+
+    A=[xz;yz;zz;w];
+    
+    tic
+    fprintf( wFileID,'%.16f %.16f %.16f %.16f\n',A );
+    fclose(wFileID);
+    clear xz yz zz A
+    gzip(wFileName);
+    delete(wFileName);
+    display(['Done writing data for w velocity. It took me ' , num2str(toc), 's']);
+
 end
-
-xz = reshape(xz,1,nt);
-yz = reshape(yz,1,nt);
-zz = reshape(zz,1,nt);
-w = reshape(w,1,nt);
-
-A=[xz;yz;zz;w];
-fprintf( wFileID,'%.16f %.16f %.16f %.16f\n',A );
-fclose(wFileID);
-clear xz yz zz A
-gzip(wFileName);
-delete(wFileName);
-
-disp('done writing data for w velocity.');

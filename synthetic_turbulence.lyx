@@ -385,12 +385,12 @@ Compute or set a minimum wave number
 
 \begin_layout Itemize
 Compute a maximum wave number 
-\begin_inset Formula $k_{\text{max }}=\frac{2\pi}{\Delta x}$
+\begin_inset Formula $k_{\text{max }}=\frac{\pi}{\Delta x}$
 \end_inset
 
 .
  For multiple dimensions, use 
-\begin_inset Formula $k_{\text{max}}=\max(\frac{2\pi}{\Delta x},\frac{2\pi}{\Delta y},\frac{2\pi}{\Delta z})$
+\begin_inset Formula $k_{\text{max}}=\max(\frac{\pi}{\Delta x},\frac{\pi}{\Delta y},\frac{\pi}{\Delta z})$
 \end_inset
 
  

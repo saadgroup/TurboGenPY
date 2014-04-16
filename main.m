@@ -52,13 +52,16 @@ ecbc=cbc_spectrum(:,2)*1e-6;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %set the number of modes.
-nmodes =500; 
+nmodes =100; 
 
 % file name base
-fNameBase = 'cbc134_uvw';
+fNameBase = 'cbc32_uvw';
 
-%generate staggered velocities
-enableIO = true;
+% write to file
+enableIO = false;
+
+% compute the mean of the fluctuations
+computeMean = true;
 
 %Lx = 9*2*pi/100; % domain size in the x direction
 %Ly = 9*2*pi/100; % domain size in the y direction
@@ -101,9 +104,10 @@ theta = pi.*rand(nmodes,1);
 %ang  = rand(nmodes,1);
 %theta = acos(1 - ang./0.5);
 
-% highest wave number that can be represented on this grid
+% highest wave number that can be represented on this grid (nyquist limit)
 wnn = max(pi/dx, max(pi/dy, pi/dz));
 display(['I will generate data up to wave number: ', num2str(wnn)]);
+
 % wavenumber step
 dk = (wnn-wn1)/nmodes;
 
@@ -169,12 +173,15 @@ display(['Done generating fluctuations. It took me ' , num2str(toc), 's']);
 
 %% CALCULATE TURBULENT KE SPECTRUM TO MAKE SURE THINGS MAKE SENSE
 [wn,vt]=tke_spectrum(u_,v_,w_,Lx, Ly, Lz); 
+vtsmooth = smooth(wn,vt,5,'moving');
+vtsmooth(1:5) = vt(1:5);
 % plot the energy spectrum
 figure(3)
 n = round((nx*ny*nz)^(1/3));
-loglog(wn(1:n-1),vt(1:n-1),'*-r');
+loglog(kcbc,ecbc,'-k');
 hold on
-loglog(kcbc,ecbc,'k');
+%loglog(wn(1:n-1),vt(1:n-1),'.-r');
+loglog(wn(1:n-1),vtsmooth(1:n-1),'*-r');
 
 %% CONVERT TO STAGGERED GRID - IF NECESSARY
 u = zeros(nx+1,ny,nz);
@@ -202,9 +209,17 @@ end
 w(:,:,1) = 0.5*(w_(:,:,1) + w_(:,:,nz));
 w(:,:,nz+1) = 0.5*(w_(:,:,1) + w_(:,:,nz));
 
+%% compute mean velocities
+if (computeMean)
+    umean = mean(mean(mean(u)));
+    vmean = mean(mean(mean(v)));
+    wmean = mean(mean(mean(w)));
+    display(['Fluctuation Means: <u> = ' , num2str(umean), ', <v> = ', num2str(vmean), ', <w> = ', num2str(wmean)]);
+end
+
 %% PLOT A FEW THINGS TO SATISFY THE EYES
-figure(2)
-contourf(u_(:,:,1),10);
+%figure(2)
+%contourf(u_(:,:,1),10);
 
 %% COMPUTE DIVERGENCE
 % Note: I don't know why I am getting non-zero divergence here although the

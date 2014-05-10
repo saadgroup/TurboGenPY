@@ -58,7 +58,7 @@ nmodes =100;
 fNameBase = 'cbc32_uvw';
 
 % write to file
-enableIO = false;
+enableIO = true;
 
 % compute the mean of the fluctuations
 computeMean = true;

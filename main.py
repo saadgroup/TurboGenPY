@@ -35,9 +35,9 @@ computeMean = True
 #Ly = 9*2*pi/100; % domain size in the y direction
 #Lz = 9*2*pi/100; % domain size in the z direction
 # input domain size in the x, y, and z directions
-Lx = 2.0*pi/15.0
-Ly = 2.0*pi/15.0
-Lz = 2.0*pi/15.0
+Lx = 2*pi/15
+Ly = 2*pi/15
+Lz = 2*pi/15
 
 # input number of cells (cell centered control volumes)
 nx = 32         # number of cells in the x direction
@@ -113,7 +113,7 @@ f, ((p1,p2),(p3,p4)) = plt.subplots(2,2)
 p1.plot(kcbc, ecbc, 'o', km, espec, '-')
 p1.set_title('Interpolated Spectrum')
 
-
+# generate turbulence at cell centers
 um = 2*sqrt(espec*dkn)
 u_ = zeros((nx,ny,nz))
 v_ = zeros((nx,ny,nz))
@@ -129,34 +129,37 @@ for k in range(0,nz):
       v_[i,j,k] = sum(bm*sym) 
       w_[i,j,k] = sum(bm*szm)
 
-## CONVERT TO STAGGERED GRID - IF NECESSARY
-u = zeros((nx+1,ny,nz))
-v = zeros((nx,ny+1,nz))
-w = zeros((nx,ny,nz+1))
-
-# set periodic condition
-for i in range(0,nx-1):
-  u[i+1,:,:]= 0.5*(u_[i+1,:,:] + u_[i,:,:])
-u[0,:,:] = 0.5*(u_[0,:,:] + u_[nx-1,:,:])
-u[nx,:,:] = 0.5*(u_[0,:,:] + u_[nx-1,:,:])
-
-# set periodic condition
-for j in range(0,ny-1):
-  v[:,j+1,:] = 0.5*(v_[:,j+1,:] + v_[:,j,:])   
-v[:,0,:] = 0.5*(v_[:,0,:] + v_[:,ny-1,:])
-v[:,ny,:] = 0.5*(v_[:,0,:] + v_[:,ny-1,:])
-
-# set periodic condition
-for k in range(0,nz-1):
-  w[:,:,k+1] = 0.5*(w_[:,:,k+1] + w_[:,:,k])   
-w[:,:,0] = 0.5*(w_[:,:,0] + w_[:,:,nz-1])
-w[:,:,nz] = 0.5*(w_[:,:,0] + w_[:,:,nz-1])
+### CONVERT TO STAGGERED GRID - IF NECESSARY
+## This is not needed anymore since the cfd code (wasatch for example) will
+## will do the proper adjustment at the boundaries. So simply store the 
+## cell-centered generated velocities on the staggered volumes.
+#u = zeros([nx+1,ny,nz])
+#v = zeros([nx,ny+1,nz])
+#w = zeros([nx,ny,nz+1])
+#
+## set periodic condition
+#for i in range(0,nx-1):
+#  u[i+1,:,:]= 0.5*(u_[i+1,:,:] + u_[i,:,:])
+#u[0,:,:] = 0.5*(u_[0,:,:] + u_[nx-1,:,:])
+#u[nx,:,:] = 0.5*(u_[0,:,:] + u_[nx-1,:,:])
+#
+## set periodic condition
+#for j in range(0,ny-1):
+#  v[:,j+1,:] = 0.5*(v_[:,j+1,:] + v_[:,j,:])   
+#v[:,0,:] = 0.5*(v_[:,0,:] + v_[:,ny-1,:])
+#v[:,ny,:] = 0.5*(v_[:,0,:] + v_[:,ny-1,:])
+#
+## set periodic condition
+#for k in range(0,nz-1):
+#  w[:,:,k+1] = 0.5*(w_[:,:,k+1] + w_[:,:,k])   
+#w[:,:,0] = 0.5*(w_[:,:,0] + w_[:,:,nz-1])
+#w[:,:,nz] = 0.5*(w_[:,:,0] + w_[:,:,nz-1])
 
 # compute mean velocities
 if computeMean:
-  umean = np.mean(u)
-  vmean = np.mean(v)
-  wmean = np.mean(w)  
+  umean = np.mean(u_)
+  vmean = np.mean(v_)
+  wmean = np.mean(w_)  
   print 'umean = ', umean
   print 'vmean = ', vmean
   print 'wmean = ', wmean
@@ -178,34 +181,34 @@ if enableIO:
   fu = gzip.open('u.txt.gz', 'w')
   for k in range(0,nz):
     for j in range(0,ny):
-      for i in range(0,nx+1):
+      for i in range(0,nx):
         x = i*dx
         y = j*dy + dy/2.0
         z = k*dz + dz/2.0
-        uu = u[i,j,k]
-        fu.write('%f %f %f %f \n' % (x,y,z,uu))      
+        uu = u_[i,j,k]
+        fu.write('%.16f %.16f %.16f %.16f \n' % (x,y,z,uu))
   fu.close()
   
   fv = gzip.open('v.txt.gz', 'w')
   for k in range(0,nz):
-    for j in range(0,ny+1):
+    for j in range(0,ny):
       for i in range(0,nx):
         x = i*dx + dx/2.0
         y = j*dy
         z = k*dz + dz/2.0
-        vv = v[i,j,k]
-        fv.write('%f %f %f %f \n' % (x,y,z,vv))      
+        vv = v_[i,j,k]
+        fv.write('%.16f %.16f %.16f %.16f \n' % (x,y,z,vv))      
   fv.close()
   
   fw = gzip.open('w.txt.gz', 'w')
-  for k in range(0,nz+1):
+  for k in range(0,nz):
     for j in range(0,ny):
       for i in range(0,nx):
         x = i*dx + dx/2.0
         y = j*dy + dy/2.0
         z = k*dz
-        ww = w[i,j,k]
-        fw.write('%f %f %f %f \n' % (x,y,z,ww))      
+        ww = w_[i,j,k]
+        fw.write('%.16f %.16f %.16f %.16f \n' % (x,y,z,ww))      
   fw.close()
   #end if enable IO
   

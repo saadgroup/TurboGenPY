@@ -31,9 +31,6 @@ enableIO = True
 # compute the mean of the fluctuations
 computeMean = True
 
-#Lx = 9*2*pi/100; % domain size in the x direction
-#Ly = 9*2*pi/100; % domain size in the y direction
-#Lz = 9*2*pi/100; % domain size in the z direction
 # input domain size in the x, y, and z directions
 Lx = 2*pi/15
 Ly = 2*pi/15
@@ -128,33 +125,7 @@ for k in range(0,nz):
       u_[i,j,k] = sum(bm*sxm)
       v_[i,j,k] = sum(bm*sym) 
       w_[i,j,k] = sum(bm*szm)
-
-### CONVERT TO STAGGERED GRID - IF NECESSARY
-## This is not needed anymore since the cfd code (wasatch for example) will
-## will do the proper adjustment at the boundaries. So simply store the 
-## cell-centered generated velocities on the staggered volumes.
-#u = zeros([nx+1,ny,nz])
-#v = zeros([nx,ny+1,nz])
-#w = zeros([nx,ny,nz+1])
-#
-## set periodic condition
-#for i in range(0,nx-1):
-#  u[i+1,:,:]= 0.5*(u_[i+1,:,:] + u_[i,:,:])
-#u[0,:,:] = 0.5*(u_[0,:,:] + u_[nx-1,:,:])
-#u[nx,:,:] = 0.5*(u_[0,:,:] + u_[nx-1,:,:])
-#
-## set periodic condition
-#for j in range(0,ny-1):
-#  v[:,j+1,:] = 0.5*(v_[:,j+1,:] + v_[:,j,:])   
-#v[:,0,:] = 0.5*(v_[:,0,:] + v_[:,ny-1,:])
-#v[:,ny,:] = 0.5*(v_[:,0,:] + v_[:,ny-1,:])
-#
-## set periodic condition
-#for k in range(0,nz-1):
-#  w[:,:,k+1] = 0.5*(w_[:,:,k+1] + w_[:,:,k])   
-#w[:,:,0] = 0.5*(w_[:,:,0] + w_[:,:,nz-1])
-#w[:,:,nz] = 0.5*(w_[:,:,0] + w_[:,:,nz-1])
-
+      
 # compute mean velocities
 if computeMean:
   umean = np.mean(u_)

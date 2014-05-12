@@ -13,6 +13,27 @@ def movingaverage(interval, window_size):
     return convolve(interval, window, 'same')
 
 def compute_tke_spectrum(u,v,w,lx,ly,lz,smooth):
+  """
+  Given a velocity field u, v, w, this function computes the kinetic energy
+  spectrum of that velocity field in wave space.
+
+  Parameters:
+  -----------  
+  u: 3D array
+    The x-velocity component.
+  v: 3D array
+    The y-velocity component.
+  w: 3D array
+    The z-velocity component.    
+  lx: float
+    The domain size in the x-direction.
+  ly: float
+    The domain size in the y-direction.
+  lz: float
+    The domain size in the z-direction.
+  smooth: boolean
+    A boolean to smooth the computed spectrum for nice visualization.
+  """
   nx = len(u[:,0,0])
   ny = len(v[0,:,0])
   nz = len(w[0,0,:])
@@ -54,7 +75,7 @@ def compute_tke_spectrum(u,v,w,lx,ly,lz,smooth):
         if (kz>kzmax):
           rkz = rkz - (nz)
         rk = sqrt(rkx*rkx + rky*rky + rkz*rkz)
-        k = int(np.round(rk));
+        k = int(np.round(rk))
         tke_spectrum[k] = tke_spectrum[k] + tkeh[kx,ky,kz]/knorm;        
 
   if smooth:

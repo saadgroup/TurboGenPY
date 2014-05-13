@@ -72,23 +72,23 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
   
   p1.plot(km, espec, 'ob')
   p1.set_title('Interpolated Spectrum')
-  
+  plt.show()
   # generate turbulence at cell centers
   um = 2*sqrt(espec*dkn)
-  u_ = zeros((nx,ny,nz))
-  v_ = zeros((nx,ny,nz))
-  w_ = zeros((nx,ny,nz))
+  u_ = zeros([nx,ny,nz])
+  v_ = zeros([nx,ny,nz])
+  w_ = zeros([nx,ny,nz])
   
   for k in range(0,nz):
     for j in range(0,ny):
       for i in range(0,nx):
-      #for every grid point (i,j,k) do the fourier summation 
+        #for every grid point (i,j,k) do the fourier summation 
         arg = kx*xc[i] + ky*yc[j] + kz*zc[k] - psi
         bm = um*cos(arg)
-        u_[i,j,k] = sum(bm*sxm)
-        v_[i,j,k] = sum(bm*sym) 
-        w_[i,j,k] = sum(bm*szm)
-        
+        u_[i,j,k] = np.sum(bm*sxm)
+        v_[i,j,k] = np.sum(bm*sym) 
+        w_[i,j,k] = np.sum(bm*szm)
+
   # compute mean velocities
   if computeMean:
     umean = np.mean(u_)

@@ -15,7 +15,15 @@ def movingaverage(interval, window_size):
 def compute_tke_spectrum(u,v,w,lx,ly,lz,smooth):
   """
   Given a velocity field u, v, w, this function computes the kinetic energy
-  spectrum of that velocity field in wave space.
+  spectrum of that velocity field in spectral space. This procedure consists of the 
+  following steps:
+  1. Compute the spectral representation of u, v, and w using a fast Fourier transform.
+  This returns uf, vf, and wf (the f stands for Fourier)
+  2. Compute the point-wise kinetic energy Ef (kx, ky, kz) = 1/2 * (uf, vf, wf)* conjugate(uf, vf, wf)
+  3. For every wave number triplet (kx, ky, kz) we have a corresponding spectral kinetic energy 
+  Ef(kx, ky, kz). To extract a one dimensional spectrum, E(k), we integrate Ef(kx,ky,kz) over
+  the surface of a sphere of radius k = sqrt(kx^2 + ky^2 + kz^2). In other words
+  E(k) = sum( E(kx,ky,kz), for all (kx,ky,kz) such that k = sqrt(kx^2 + ky^2 + kz^2) ).
 
   Parameters:
   -----------  
@@ -76,8 +84,9 @@ def compute_tke_spectrum(u,v,w,lx,ly,lz,smooth):
           rkz = rkz - (nz)
         rk = sqrt(rkx*rkx + rky*rky + rkz*rkz)
         k = int(np.round(rk))
-        tke_spectrum[k] = tke_spectrum[k] + tkeh[kx,ky,kz]/knorm;        
+        tke_spectrum[k] = tke_spectrum[k] + tkeh[kx,ky,kz]
 
+  tke_spectrum = tke_spectrum/knorm
   if smooth:
     tkespecsmooth = movingaverage(tke_spectrum, 5) #smooth the spectrum
     tkespecsmooth[0:4] = tke_spectrum[0:4] # get the first 4 values from the original data

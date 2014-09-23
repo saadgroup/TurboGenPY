@@ -10,6 +10,7 @@ import numpy as np
 import time
 from numpy import pi
 from tkespec import compute_tke_spectrum
+# ATTENTION: TO USE THE THREADED VERSION, REPLACE isoturb WITH isoturbo
 from isoturb import generate_isotropic_turbulence
 import matplotlib.pyplot as plt
 
@@ -45,7 +46,7 @@ def power_spec(k):
 nmodes =100
 
 # write to file
-enableIO = False
+enableIO = True
 
 # compute the mean of the fluctuations for verification purposes
 computeMean = False
@@ -61,9 +62,9 @@ lz = 2*pi/15
 # input number of cells (cell centered control volumes). This will
 # determine the maximum wave number that can be represented on this grid.
 # see wnn below
-nx = 64         # number of cells in the x direction
-ny = 64         # number of cells in the y direction
-nz = 64         # number of cells in the z direction
+nx = 32         # number of cells in the x direction
+ny = 32         # number of cells in the y direction
+nz = 32         # number of cells in the z direction
 
 # enter the smallest wavenumber represented by this spectrum
 wn1 = 15 #determined here from cbc spectrum properties

@@ -175,7 +175,7 @@ so that
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-u=\sum_{n=1}^{M}\hat{u}_{m}\cos(k_{m}x-\psi_{m})
+u=\sum_{m=1}^{M}\hat{u}_{m}\cos(k_{m}x-\psi_{m})
 \end{equation}
 
 \end_inset
@@ -190,7 +190,7 @@ The extension to 3D follows
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-u=\sum_{n=1}^{M}\hat{u}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+u=\sum_{m=1}^{M}\hat{u}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
 \end{equation}
 
 \end_inset
@@ -201,7 +201,7 @@ u=\sum_{n=1}^{M}\hat{u}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-v=\sum_{n=1}^{M}\hat{v}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+v=\sum_{m=1}^{M}\hat{v}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
 \end{equation}
 
 \end_inset
@@ -212,13 +212,13 @@ v=\sum_{n=1}^{M}\hat{v}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-w=\sum_{n=1}^{M}\hat{w}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+w=\sum_{m=1}^{M}\hat{w}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
 \end{equation}
 
 \end_inset
 
 where 
-\begin_inset Formula $\mathbf{k}_{m}\equiv(k_{x,n},k_{y,n},k_{z,n})$
+\begin_inset Formula $\mathbf{k}_{m}\equiv(k_{x,m},k_{y,m},k_{z,m})$
 \end_inset
 
  is the position vector in wave space and 
@@ -227,7 +227,7 @@ where
 
  is the position vector in physical space.
  Therefore, 
-\begin_inset Formula $\mathbf{k}_{m}\cdot\mathbf{x}_{m}=k_{x,n}x+k_{y,n}y+k_{z,n}z$
+\begin_inset Formula $\mathbf{k}_{m}\cdot\mathbf{x}_{m}=k_{x,m}x+k_{y,m}y+k_{z,m}z$
 \end_inset
 
 .
@@ -237,7 +237,7 @@ where
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\mathbf{u}=\sum_{n=1}^{N}\hat{\mathbf{u}}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+\mathbf{u}=\sum_{m=1}^{M}\hat{\mathbf{u}}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
 \end{equation}
 
 \end_inset
@@ -253,7 +253,7 @@ where
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\frac{\partial u}{\partial x}+\frac{\partial v}{y}+\frac{\partial w}{\partial z}=0
+\frac{\partial u}{\partial x}+\frac{\partial v}{\partial y}+\frac{\partial w}{\partial z}=0
 \end{equation}
 
 \end_inset
@@ -264,7 +264,22 @@ or
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
--\sum_{n=1}^{N}\left(k_{x,n}\hat{u}_{m}+k_{y,n}\hat{v}_{m}+k_{z,n}\hat{w}_{m}\right)\sin(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})=0
+\frac{\partial u}{\partial x}=\frac{u_{i+1}-u_{i}}{\Delta x}=u=\sum_{m=1}^{M}\hat{u}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+or
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+-\sum_{m=1}^{m}\left(k_{x,m}\hat{u}_{m}+k_{y,m}\hat{v}_{m}+k_{z,m}\hat{w}_{m}\right)\sin(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})=0
 \end{equation}
 
 \end_inset
@@ -281,8 +296,8 @@ Finally, this means that the wave vector is perpendicular to the Fourier
 
 \end_inset
 
-This means that the Fourier coefficients have different directions in the
- wave space.
+This means that the Fourier coefficients have different directions in wave
+ space.
  We therefore write the Fourier coefficients as
 \end_layout
 
@@ -420,7 +435,7 @@ Generate a list of
 \end_layout
 
 \begin_layout Itemize
-Generate a four arrays of random numbers, each of which is of size M (those
+Generate four arrays of random numbers, each of which is of size M (those
  will be needed next).
  Those will correspond to the angles: 
 \begin_inset Formula $\theta_{m}$
@@ -534,18 +549,21 @@ Once those quantities are computed, loop over the mesh.
 \end_inset
 
 .
- Finally, construct the following summations (at every point you will have
- a summation of 
+ Finally, construct the following summations (at every point 
+\begin_inset Formula $(x,y,z)$
+\end_inset
+
+ you will have a summation of 
 \begin_inset Formula $M$
 \end_inset
 
--modes
+-modes)
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-u=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{x,m}
+u(x,y,z)=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{x,m}
 \end{equation}
 
 \end_inset

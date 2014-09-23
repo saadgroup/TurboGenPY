@@ -92,4 +92,6 @@ def compute_tke_spectrum(u,v,w,lx,ly,lz,smooth):
     tkespecsmooth[0:4] = tke_spectrum[0:4] # get the first 4 values from the original data
     tke_spectrum = tkespecsmooth
 
-  return wave_numbers, tke_spectrum
+  knyquist = knorm*min(nx,ny,nz)/2 
+
+  return knyquist, wave_numbers, tke_spectrum

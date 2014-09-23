@@ -61,18 +61,39 @@ lz = 2*pi/15
 # input number of cells (cell centered control volumes). This will
 # determine the maximum wave number that can be represented on this grid.
 # see wnn below
-nx = 32         # number of cells in the x direction
-ny = 32         # number of cells in the y direction
-nz = 32         # number of cells in the z direction
+nx = 64         # number of cells in the x direction
+ny = 64         # number of cells in the y direction
+nz = 64         # number of cells in the z direction
 
 # enter the smallest wavenumber represented by this spectrum
 wn1 = 15 #determined here from cbc spectrum properties
 t0 = time.time()
-u, v, w = generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf,computeMean, enableIO)
+u,v,w = generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf,computeMean, enableIO)
+
 t1 = time.time()
 print 'it took me ', t1 - t0, ' s to generate the isotropic turbulence.'
+
 # verify that the generated velocities fit the spectrum
-wavenumbers, tkespec = compute_tke_spectrum(u,v,w,lx,ly,lz, True)
-plt.loglog(kcbc, ecbc, '-', wavenumbers, tkespec, 'ro-')
-plt.title('Spectrum of generated turbulence')
+knyquist, wavenumbers, tkespec = compute_tke_spectrum(u,v,w,lx,ly,lz, True)
+
+q, ((p1,p2),(p3,p4)) = plt.subplots(2,2)
+espec = cbc_specf(kcbc)
+p1.plot(kcbc, espec, 'ob', kcbc, ecbc, '-')
+p1.set_title('Interpolated Spectrum')
+p1.grid()
+p1.set_xlabel('wave number')
+p1.set_ylabel('E')
+
+p2.loglog(kcbc, ecbc, '-', wavenumbers, tkespec, 'ro-')
+p2.axvline(x=knyquist, linestyle='--', color='black')
+p2.set_title('Spectrum of generated turbulence')
+p2.grid()
+
+# contour plot
+p3.matshow(u[:,:,nz/2])
+p3.set_title('u velocity')
+
+p4.matshow(v[:,:,nz/2])
+p4.set_title('v velocity')
+
 plt.show()

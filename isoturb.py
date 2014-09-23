@@ -8,8 +8,6 @@ import numpy as np
 import gzip
 from numpy import sin, cos, sqrt, ones, zeros, pi, arange
 from numpy import linalg as LA
-from tkespec import compute_tke_spectrum
-import matplotlib.pyplot as plt
 
 def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMean,enableIO):
   ## grid generation
@@ -65,14 +63,9 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
   
   # now create an interpolant for the spectrum. this is needed for
   # experimentally-specified spectra
-  #f = interpolate.interp1d(kcbc, ecbc,'slinear')
-  espec = especf(km)   # use interpolation function returned by `interp1d`
+  espec = especf(km)
+  espec = espec.clip(0.0)
   
-  q, ((p1,p2),(p3,p4)) = plt.subplots(2,2)
-  
-  p1.plot(km, espec, 'ob')
-  p1.set_title('Interpolated Spectrum')
-  plt.show()
   # generate turbulence at cell centers
   um = 2*sqrt(espec*dkn)
   u_ = zeros([nx,ny,nz])
@@ -97,18 +90,7 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
     print 'umean = ', umean
     print 'vmean = ', vmean
     print 'wmean = ', wmean
-    
-  # verify that the generated velocities fit the spectrum
-  wavenumbers, tkespec = compute_tke_spectrum(u_,v_,w_,lx,ly,lz, True)
-  p2.loglog(km, espec, '-', wavenumbers, tkespec, 'ro-')
-  p2.set_title('Spectrum of generated turbulence')
-  plt.show()
-  
-  # contour plot
-  X, Y = np.meshgrid(xc, yc)
-  p3.contour(X, Y, u_[:,:,1])
-  p3.set_title('Contour lines of u velocity')
-  
+      
   #write to disk
   if enableIO:
     print 'Writing to disk. This may take a while...'

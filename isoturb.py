@@ -103,6 +103,7 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
           z = k*dz + dz/2.0
           uu = u_[i,j,k]
           fu.write('%.16f %.16f %.16f %.16f \n' % (x,y,z,uu))
+          #fu.write('%d %d %d %.16f \n' % (i,j,k,uu))
     fu.close()
     
     fv = gzip.open('v.txt.gz', 'w')
@@ -114,6 +115,7 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
           z = k*dz + dz/2.0
           vv = v_[i,j,k]
           fv.write('%.16f %.16f %.16f %.16f \n' % (x,y,z,vv))      
+          #fv.write('%d %d %d %.16f \n' % (i,j,k,vv))
     fv.close()
     
     fw = gzip.open('w.txt.gz', 'w')
@@ -125,6 +127,7 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
           z = k*dz
           ww = w_[i,j,k]
           fw.write('%.16f %.16f %.16f %.16f \n' % (x,y,z,ww))      
+          #fw.write('%d %d %d %.16f \n' % (i,j,k,ww))          
     fw.close()
     #end if enable IO
     

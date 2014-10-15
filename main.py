@@ -7,12 +7,15 @@ Created on Thu May  8 20:08:01 2014
 #!/usr/bin/env python
 from scipy import interpolate
 import numpy as np
-import time
 from numpy import pi
+import time
+import scipy
+#from scipy import io
 from tkespec import compute_tke_spectrum
-# ATTENTION: TO USE THE THREADED VERSION, REPLACE isoturb WITH isoturbo
-from isoturb import generate_isotropic_turbulence
+import isoturb
+import isoturbo
 import matplotlib.pyplot as plt
+from fileformats import FileFormats
 
 #load an experimental specturm. Alternatively, specify it via a function call
 cbcspec = np.loadtxt('cbc_spectrum.txt')
@@ -41,12 +44,25 @@ def power_spec(k):
   espec = c0*pow(k,-5.0/3.0)*pow(ES,2.0/3.0)*fl*fh
   return espec
 
-#USER INPUT
+#----------------------------------------------------------------------------------------------
+# __    __   ______   ________  _______         ______  __    __  _______   __    __  ________ 
+#|  \  |  \ /      \ |        \|       \       |      \|  \  |  \|       \ |  \  |  \|        \
+#| $$  | $$|  $$$$$$\| $$$$$$$$| $$$$$$$\       \$$$$$$| $$\ | $$| $$$$$$$\| $$  | $$ \$$$$$$$$
+#| $$  | $$| $$___\$$| $$__    | $$__| $$        | $$  | $$$\| $$| $$__/ $$| $$  | $$   | $$   
+#| $$  | $$ \$$    \ | $$  \   | $$    $$        | $$  | $$$$\ $$| $$    $$| $$  | $$   | $$   
+#| $$  | $$ _\$$$$$$\| $$$$$   | $$$$$$$\        | $$  | $$\$$ $$| $$$$$$$ | $$  | $$   | $$   
+#| $$__/ $$|  \__| $$| $$_____ | $$  | $$       _| $$_ | $$ \$$$$| $$      | $$__/ $$   | $$   
+# \$$    $$ \$$    $$| $$     \| $$  | $$      |   $$ \| $$  \$$$| $$       \$$    $$   | $$   
+#  \$$$$$$   \$$$$$$  \$$$$$$$$ \$$   \$$       \$$$$$$ \$$   \$$ \$$        \$$$$$$     \$$   
+#----------------------------------------------------------------------------------------------
+use_threads = True
 #set the number of modes you want to use to represent the velocity.
 nmodes =100
 
 # write to file
 enableIO = True
+fileformat = FileFormats.FLAT #supported formats are: FLAT, IJK, XYZ
+savemat = False
 
 # compute the mean of the fluctuations for verification purposes
 computeMean = False
@@ -55,9 +71,9 @@ computeMean = False
 # based on the largest length scale that your data has. For the cbc data,
 # the largest length scale corresponds to a wave number of 15, hence, the
 # domain size is L = 2pi/15.
-lx = 2*pi/15
-ly = 2*pi/15
-lz = 2*pi/15
+lx = 2.0*pi/15
+ly = 2.0*pi/15
+lz = 2.0*pi/15
 
 # input number of cells (cell centered control volumes). This will
 # determine the maximum wave number that can be represented on this grid.
@@ -69,7 +85,11 @@ nz = 32         # number of cells in the z direction
 # enter the smallest wavenumber represented by this spectrum
 wn1 = 15 #determined here from cbc spectrum properties
 t0 = time.time()
-u,v,w = generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf,computeMean, enableIO)
+if use_threads:
+  u,v,w = isoturbo.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf,computeMean, enableIO, fileformat)
+else:
+  u,v,w = isoturb.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf,computeMean, enableIO) # this doesnt support file formats yet
+  
 
 t1 = time.time()
 print 'it took me ', t1 - t0, ' s to generate the isotropic turbulence.'
@@ -98,3 +118,10 @@ p4.matshow(v[:,:,nz/2])
 p4.set_title('v velocity')
 
 plt.show()
+
+if(savemat):
+  data={} # CREATE empty dictionary
+  data['U'] = u
+  data['V'] = v
+  data['W'] = w  
+  scipy.io.savemat('uvw.mat',data)

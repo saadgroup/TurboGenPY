@@ -10,6 +10,7 @@ import numpy as np
 from numpy import pi
 import time
 import scipy
+import scipy.io
 #from scipy import io
 from tkespec import compute_tke_spectrum
 import isoturb
@@ -57,12 +58,12 @@ def power_spec(k):
 #----------------------------------------------------------------------------------------------
 use_threads = True
 #set the number of modes you want to use to represent the velocity.
-nmodes =100
+nmodes =250
 
 # write to file
 enableIO = True
 fileformat = FileFormats.FLAT #supported formats are: FLAT, IJK, XYZ
-savemat = False
+savemat = True
 
 # compute the mean of the fluctuations for verification purposes
 computeMean = False
@@ -71,9 +72,9 @@ computeMean = False
 # based on the largest length scale that your data has. For the cbc data,
 # the largest length scale corresponds to a wave number of 15, hence, the
 # domain size is L = 2pi/15.
-lx = 2.0*pi/15
-ly = 2.0*pi/15
-lz = 2.0*pi/15
+lx = 2.0*pi/15.0
+ly = 2.0*pi/15.0
+lz = 2.0*pi/15.0
 
 # input number of cells (cell centered control volumes). This will
 # determine the maximum wave number that can be represented on this grid.

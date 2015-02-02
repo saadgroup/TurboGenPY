@@ -1,24 +1,28 @@
-#LyX 2.0 created this file. For more info see http://www.lyx.org/
-\lyxformat 413
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
 \begin_document
 \begin_header
 \textclass article
+\begin_preamble
+ \usepackage{txfonts}
+\usepackage{mathptmx}
+\end_preamble
 \use_default_options false
 \maintain_unincluded_children false
 \language english
 \language_package default
-\inputencoding latin9
+\inputencoding iso8859-15
 \fontencoding default
-\font_roman cmr
+\font_roman times
 \font_sans default
 \font_typewriter cmtt
+\font_math auto
 \font_default_family rmdefault
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -29,15 +33,24 @@
 \use_hyperref false
 \papersize default
 \use_geometry true
-\use_amsmath 2
-\use_esint 0
-\use_mhchem 2
-\use_mathdots 0
+\use_package amsmath 2
+\use_package amssymb 2
+\use_package cancel 1
+\use_package esint 0
+\use_package mathdots 0
+\use_package mathtools 1
+\use_package mhchem 2
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
 \cite_engine basic
+\cite_engine_type default
+\biblio_style plain
 \use_bibtopic false
 \use_indices false
 \paperorientation portrait
 \suppress_date false
+\justification true
 \use_refstyle 0
 \index Index
 \shortcut idx
@@ -201,7 +214,7 @@ u=\sum_{m=1}^{M}\hat{u}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-v=\sum_{m=1}^{M}\hat{v}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+\varv=\sum_{m=1}^{M}\hat{v}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
 \end{equation}
 
 \end_inset
@@ -258,22 +271,7 @@ where
 
 \end_inset
 
-or
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-\frac{\partial u}{\partial x}=\frac{u_{i+1}-u_{i}}{\Delta x}=u=\sum_{m=1}^{M}\hat{u}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-or
+This gives
 \end_layout
 
 \begin_layout Standard
@@ -284,14 +282,24 @@ or
 
 \end_inset
 
-Finally, this means that the wave vector is perpendicular to the Fourier
- coefficients
+or
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\sum_{m}\mathbf{k}_{m}\cdot\hat{\mathbf{u}}_{m}\sin(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})=0
+\end{equation}
+
+\end_inset
+
+This equation can be enforced by setting
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\mathbf{k}_{m}\cdot\hat{\mathbf{u}}_{m}=0
+\mathbf{k}_{m}\cdot\hat{\mathbf{u}}_{m}=0,\;\forall\: m\in\{0,1,\cdots,M\}
 \]
 
 \end_inset
@@ -304,18 +312,35 @@ This means that the Fourier coefficients have different directions in wave
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\hat{\mathbf{u}}_{m}\equiv q_{m}\boldsymbol{\sigma}_{m};\quad\mathbf{k}_{m}\cdot\boldsymbol{\sigma}_{m}=0
+\hat{\mathbf{u}}_{m}\equiv q_{m}\boldsymbol{\sigma}_{m}\mid\mathbf{k}_{m}\cdot\boldsymbol{\sigma}_{m}=0
 \end{equation}
 
 \end_inset
 
-so that
+where 
+\begin_inset Formula $\boldsymbol{\sigma}_{m}$
+\end_inset
+
+ is a unit vector computed such that 
+\begin_inset Formula $\mathbf{k}_{m}\cdot\boldsymbol{\sigma}_{m}=0$
+\end_inset
+
+ at any point 
+\begin_inset Formula $\mathbf{x}$
+\end_inset
+
+.
+ The velocity vector at point 
+\begin_inset Formula $\mathbf{x}$
+\end_inset
+
+ is now at hand
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\mathbf{u}=\sum_{n=1}^{N}q_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})\boldsymbol{\sigma}_{m}
+\mathbf{u}(\mathbf{x})=\sum_{m=1}^{M}q_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})\boldsymbol{\sigma}_{m}
 \end{equation}
 
 \end_inset
@@ -324,7 +349,8 @@ The last step is to link
 \begin_inset Formula $q_{m}$
 \end_inset
 
- to the energy spectrum
+ to the energy spectrum.
+ This can be computed from
 \end_layout
 
 \begin_layout Standard
@@ -356,7 +382,7 @@ status open
 \end_inset
 
 
-\begin_inset Caption
+\begin_inset Caption Standard
 
 \begin_layout Plain Layout
 Angles associated with wave number 
@@ -574,7 +600,7 @@ u(x,y,z)=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{x,m}
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-v=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{y,m}
+\varv(x,y,z)=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{y,m}
 \end{equation}
 
 \end_inset
@@ -585,7 +611,7 @@ v=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{y,m}
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-w=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{z,m}
+w(x,y,z)=\sum_{n=1}^{M}q_{m}\cos(\beta_{m})\sigma_{z,m}
 \end{equation}
 
 \end_inset

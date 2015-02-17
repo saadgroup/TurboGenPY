@@ -29,8 +29,8 @@ def compute_turbulence(nthread,xc,yc,zc,psi,um,kx,ky,kz,sxm,sym,szm,nx,ny,nz,ip,
         x0 = i + xoffset
         y0 = j + yoffset
         z0 = k + zoffset
-        arg = kx*xc[x0] + ky*yc[y0] + kz*zc[z0] - psi
-        bm = um*cos(arg)
+        arg = kx*xc[x0] + ky*yc[y0] + kz*zc[z0] + psi
+        bm = 2.0*um*cos(arg)
         u_[i,j,k] = np.sum(bm*sxm)
         v_[i,j,k] = np.sum(bm*sym) 
         w_[i,j,k] = np.sum(bm*szm)
@@ -180,10 +180,13 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
   
   ## START THE FUN!
   # compute random angles
-  psi   = 2.0*pi*np.random.rand(nmodes);
-  phi   = 2.0*pi*np.random.rand(nmodes);
-  alfa  = 2.0*pi*np.random.rand(nmodes);
-  theta = pi*np.random.rand(nmodes);
+  phi =   2.0*pi*np.random.uniform(0.0,1.0,nmodes);
+  nu = np.random.uniform(0.0,1.0,nmodes);
+  theta = np.arccos(2.0*nu -1.0);
+  psi   = 2.0*pi*np.random.uniform(0.0,1.0,nmodes);
+  mu = np.random.uniform(0.0,1.0,nmodes);  
+  alfa = np.arccos(2.0*mu -1.0);
+#  alfa  = 2.0*pi*np.random.uniform(0.0,1.0,nmodes);
   
   # highest wave number that can be represented on this grid (nyquist limit)
   wnn = max(np.pi/dx, max(np.pi/dy, np.pi/dz));
@@ -208,7 +211,7 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
   sym = sin(phi)*cos(theta)*cos(alfa) + cos(phi)*sin(alfa)
   szm = -sin(theta)*cos(alfa)   
   
-  # another way of computing sigma:
+  # alternative ways of computing sigma:
 #  sxm = cos(phi)*cos(theta)*cos(alfa) - sin(phi)*sin(alfa)*cos(theta);
 #  sym = sin(phi)*cos(theta)*cos(alfa) + cos(phi)*sin(alfa)*cos(theta);
 #  szm = -sin(theta)*cos(alfa);   
@@ -231,7 +234,7 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
       
   # generate turbulence at cell centers
   print 'Now generating turbulence...'
-  um = 2*sqrt(espec*dkn)
+  um = sqrt(espec*dkn)
       
   #  must use Manager queue here, or will not work
   nthreads = 2;

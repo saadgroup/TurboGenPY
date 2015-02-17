@@ -8,6 +8,8 @@ import numpy as np
 import gzip
 from numpy import sin, cos, sqrt, ones, zeros, pi, arange
 from numpy import linalg as LA
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMean,enableIO):
   ## grid generation
@@ -25,10 +27,13 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
   
   ## START THE FUN!
   # compute random angles
-  psi   = 2.0*pi*np.random.rand(nmodes);
-  phi   = 2.0*pi*np.random.rand(nmodes);
-  alfa  = 2.0*pi*np.random.rand(nmodes);
-  theta = pi*np.random.rand(nmodes);
+  phi =   2.0*pi*np.random.uniform(0.0,1.0,nmodes);
+  nu = np.random.uniform(0.0,1.0,nmodes);
+  theta = np.arccos(2.0*nu -1.0);
+  psi   = 2.0*pi*np.random.uniform(0.0,1.0,nmodes);
+  mu = np.random.uniform(0.0,1.0,nmodes);  
+#  alfa  = 2.0*pi*np.random.uniform(0.0,1.0,nmodes);
+  alfa = np.arccos(2.0*mu -1.0);
   
   # highest wave number that can be represented on this grid (nyquist limit)
   wnn = max(np.pi/dx, max(np.pi/dy, np.pi/dz));
@@ -42,7 +47,7 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
 
   dkn = ones(nmodes)*dk
   
-  #   wavenumber vector from random angles   
+  #   wavenumber vector from random angles
   kx = sin(theta)*cos(phi)*wn
   ky = sin(theta)*sin(phi)*wn
   kz = cos(theta)*wn
@@ -52,6 +57,10 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
   sxm = cos(phi)*cos(theta)*cos(alfa) - sin(phi)*sin(alfa)
   sym = sin(phi)*cos(theta)*cos(alfa) + cos(phi)*sin(alfa)
   szm = -sin(theta)*cos(alfa)   
+
+#  sxm = cos(theta)*cos(alfa)
+#  sym = cos(theta)*sin(alfa)
+#  szm = -sin(theta)*cos(phi)*cos(alfa)-sin(theta)*sin(phi)*sin(alfa)
   
   # verify that the wave vector and sigma are perpendicular
   kk = kx*sxm + ky*sym + kz*szm;
@@ -67,7 +76,7 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
   espec = espec.clip(0.0)
   
   # generate turbulence at cell centers
-  um = 2*sqrt(espec*dkn)
+  um = sqrt(espec*dkn)
   u_ = zeros([nx,ny,nz])
   v_ = zeros([nx,ny,nz])
   w_ = zeros([nx,ny,nz])
@@ -77,11 +86,35 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
       for i in range(0,nx):
         #for every grid point (i,j,k) do the fourier summation 
         arg = kx*xc[i] + ky*yc[j] + kz*zc[k] - psi
-        bm = um*cos(arg)
-        u_[i,j,k] = np.sum(bm*sxm)
-        v_[i,j,k] = np.sum(bm*sym) 
+        bm = 2.0*um*cos(arg)
+        u_[i,j,k] = np.sum(bm*sxm) 
+        v_[i,j,k] = np.sum(bm*sym)
         w_[i,j,k] = np.sum(bm*szm)
 
+#  # try to enforce divergence-free conditions
+#  count = 0
+#  for k in range(0,nz-1):
+#    for j in range(0,ny-1):
+#      for i in range(0,nx-1):
+#        src = (u_[i+1,j,k] - u_[i,j,k])/dx + (v_[i,j+1,k] - v_[i,j,k])/dy + (w_[i,j,k+1] - w_[i,j,k])/dz
+#        if(src > 1e-5):
+#          count += 1
+#          src = (u_[i+1,j,k] - u_[i,j,k])/dx + (v_[i,j+1,k] - v_[i,j,k])/dy
+#          #oldw = w_[i,j,k+1]
+#          w_[i,j,k+1] = w_[i,j,k] - dz*src
+#          #fac = w_[i,j,k+1]/oldw
+#          #print 'factor = ', fac
+#  print 'cells with divergence: ', count
+
+  count = 0
+  for k in range(0,nz-1):
+    for j in range(0,ny-1):
+      for i in range(0,nx-1):
+        src = (u_[i+1,j,k] - u_[i,j,k])/dx + (v_[i,j+1,k] - v_[i,j,k])/dy + (w_[i,j,k+1] - w_[i,j,k])/dz
+        if(src > 1e-2):
+          count += 1
+  print 'cells with divergence: ', count
+  
   # compute mean velocities
   if computeMean:
     umean = np.mean(u_)

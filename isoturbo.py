@@ -29,7 +29,7 @@ def compute_turbulence(nthread,xc,yc,zc,psi,um,kx,ky,kz,sxm,sym,szm,nx,ny,nz,ip,
         x0 = i + xoffset
         y0 = j + yoffset
         z0 = k + zoffset
-        arg = kx*xc[x0] + ky*yc[y0] + kz*zc[z0] + psi
+        arg = kx*xc[x0] + ky*yc[y0] + kz*zc[z0] - psi
         bm = 2.0*um*cos(arg)
         u_[i,j,k] = np.sum(bm*sxm)
         v_[i,j,k] = np.sum(bm*sym) 

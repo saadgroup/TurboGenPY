@@ -175,7 +175,7 @@ then
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\begin{alignedat}{1}a_{m}\cos(k_{m}x)+b_{m}\sin(k_{m}x) & =\hat{u}_{m}\cos\alpha_{m}\cos(k_{m}x)+\hat{u}_{m}\sin\alpha_{m}\sin(k_{m}x)\\
+\begin{alignedat}{1}a_{m}\cos(k_{m}x)+b_{m}\sin(k_{m}x) & =\hat{u}_{m}\cos(\psi_{m})\cos(k_{m}x)+\hat{u}_{m}\sin(\psi_{m})\sin(k_{m}x)\\
  & =\hat{u}_{m}\cos(k_{m}x-\psi_{m})
 \end{alignedat}
 \end{equation}
@@ -214,7 +214,7 @@ u=\sum_{m=1}^{M}\hat{u}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\varv=\sum_{m=1}^{M}\hat{v}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+\varv=\sum_{m=1}^{M}\hat{\varv}_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
 \end{equation}
 
 \end_inset
@@ -266,7 +266,7 @@ where
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\frac{\partial u}{\partial x}+\frac{\partial v}{\partial y}+\frac{\partial w}{\partial z}=0
+\frac{\partial u}{\partial x}+\frac{\partial\varv}{\partial y}+\frac{\partial w}{\partial z}=0
 \end{equation}
 
 \end_inset

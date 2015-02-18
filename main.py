@@ -11,7 +11,6 @@ from numpy import pi
 import time
 import scipy
 import scipy.io
-#from scipy import io
 from tkespec import compute_tke_spectrum
 import isoturb
 import isoturbo
@@ -56,17 +55,22 @@ def power_spec(k):
 # \$$    $$ \$$    $$| $$     \| $$  | $$      |   $$ \| $$  \$$$| $$       \$$    $$   | $$   
 #  \$$$$$$   \$$$$$$  \$$$$$$$$ \$$   \$$       \$$$$$$ \$$   \$$ \$$        \$$$$$$     \$$   
 #----------------------------------------------------------------------------------------------
+
+# specify whether you want to use threads or not to generate turbulence
 use_threads = True
+
 #set the number of modes you want to use to represent the velocity.
 nmodes =250
 
 # write to file
-enableIO = True
-fileformat = FileFormats.FLAT #supported formats are: FLAT, IJK, XYZ
-savemat = True
+enableIO = False # enable writing to file
+fileformat = FileFormats.FLAT  # Specify the file format supported formats are: FLAT, IJK, XYZ
+
+# save the velocity field as a matlab matrix (.mat)
+savemat = False
 
 # compute the mean of the fluctuations for verification purposes
-computeMean = False
+computeMean = True
 
 # input domain size in the x, y, and z directions. This value is typically
 # based on the largest length scale that your data has. For the cbc data,
@@ -85,15 +89,45 @@ nz = 32         # number of cells in the z direction
 
 # enter the smallest wavenumber represented by this spectrum
 wn1 = 15 #determined here from cbc spectrum properties
+
+#------------------------------------------------------------------------------
+# END USER INPUT
+#------------------------------------------------------------------------------
 t0 = time.time()
+
 if use_threads:
   u,v,w = isoturbo.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf,computeMean, enableIO, fileformat)
 else:
   u,v,w = isoturb.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf,computeMean, enableIO) # this doesnt support file formats yet
-  
 
 t1 = time.time()
 print 'it took me ', t1 - t0, ' s to generate the isotropic turbulence.'
+
+
+# compute mean velocities
+if computeMean:
+  umean = np.mean(u)
+  vmean = np.mean(v)
+  wmean = np.mean(w)  
+  print 'mean u = ', umean
+  print 'mean v = ', vmean
+  print 'mean w = ', wmean
+
+  ufluc = umean - u
+  vfluc = vmean - v
+  wfluc = wmean - w  
+  
+  print 'mean u fluct = ', np.mean(ufluc)
+  print 'mean v fluct = ', np.mean(vfluc)
+  print 'mean w fluct = ', np.mean(wfluc)
+  
+  ufrms = np.mean(ufluc*ufluc)
+  vfrms = np.mean(vfluc*vfluc)
+  wfrms = np.mean(wfluc*wfluc)
+  
+  print 'u fluc rms = ', np.sqrt(ufrms)
+  print 'v fluc rms = ', np.sqrt(vfrms)
+  print 'w fluc rms = ', np.sqrt(wfrms)
 
 # verify that the generated velocities fit the spectrum
 knyquist, wavenumbers, tkespec = compute_tke_spectrum(u,v,w,lx,ly,lz, True)

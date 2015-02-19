@@ -16,6 +16,7 @@ import isoturb
 import isoturbo
 import matplotlib.pyplot as plt
 from fileformats import FileFormats
+import isoio
 
 #load an experimental specturm. Alternatively, specify it via a function call
 cbcspec = np.loadtxt('cbc_spectrum.txt')
@@ -60,10 +61,10 @@ def power_spec(k):
 use_threads = True
 
 #set the number of modes you want to use to represent the velocity.
-nmodes =250
-
+nmodes =100
+N = 32
 # write to file
-enableIO = False # enable writing to file
+enableIO = True # enable writing to file
 fileformat = FileFormats.FLAT  # Specify the file format supported formats are: FLAT, IJK, XYZ
 
 # save the velocity field as a matlab matrix (.mat)
@@ -71,6 +72,9 @@ savemat = False
 
 # compute the mean of the fluctuations for verification purposes
 computeMean = True
+
+# check the divergence of the generated velocity field
+checkdivergence = False
 
 # input domain size in the x, y, and z directions. This value is typically
 # based on the largest length scale that your data has. For the cbc data,
@@ -83,9 +87,9 @@ lz = 2.0*pi/15.0
 # input number of cells (cell centered control volumes). This will
 # determine the maximum wave number that can be represented on this grid.
 # see wnn below
-nx = 32         # number of cells in the x direction
-ny = 32         # number of cells in the y direction
-nz = 32         # number of cells in the z direction
+nx = N         # number of cells in the x direction
+ny = N         # number of cells in the y direction
+nz = N         # number of cells in the z direction
 
 # enter the smallest wavenumber represented by this spectrum
 wn1 = 15 #determined here from cbc spectrum properties
@@ -94,16 +98,31 @@ wn1 = 15 #determined here from cbc spectrum properties
 # END USER INPUT
 #------------------------------------------------------------------------------
 t0 = time.time()
-
 if use_threads:
-  u,v,w = isoturbo.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf,computeMean, enableIO, fileformat)
+  u,v,w = isoturbo.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf)
 else:
-  u,v,w = isoturb.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf,computeMean, enableIO) # this doesnt support file formats yet
-
+  u,v,w = isoturb.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf)
 t1 = time.time()
 print 'it took me ', t1 - t0, ' s to generate the isotropic turbulence.'
 
+if (enableIO):
+  dx = lx/nx
+  dy = ly/ny
+  dz = lz/nz
+  if (use_threads):
+    isoio.writefileparallel(u,v,w,dx,dy,dz,fileformat)
+  else:
+    isoio.writefile('u.txt','x',dx,dy,dz,u,fileformat)
+    isoio.writefile('v.txt','y',dx,dy,dz,v,fileformat)
+    isoio.writefile('w.txt','z',dx,dy,dz,w,fileformat)  
 
+if(savemat):
+  data={} # CREATE empty dictionary
+  data['U'] = u
+  data['V'] = v
+  data['W'] = w  
+  scipy.io.savemat('uvw.mat',data)
+  
 # compute mean velocities
 if computeMean:
   umean = np.mean(u)
@@ -129,11 +148,34 @@ if computeMean:
   print 'v fluc rms = ', np.sqrt(vfrms)
   print 'w fluc rms = ', np.sqrt(wfrms)
 
+# check divergence
+if checkdivergence:
+  count = 0
+  for k in range(0,nz-1):
+    for j in range(0,ny-1):
+      for i in range(0,nx-1):
+        src = (u[i+1,j,k] - u[i,j,k])/dx + (v[i,j+1,k] - v[i,j,k])/dy + (w[i,j,k+1] - w[i,j,k])/dz
+        if(src > 1e-2):
+          count += 1
+  print 'cells with divergence: ', count      
+
 # verify that the generated velocities fit the spectrum
-knyquist, wavenumbers, tkespec = compute_tke_spectrum(u,v,w,lx,ly,lz, True)
+knyquist, wavenumbers, tkespec = compute_tke_spectrum(u,v,w,lx,ly,lz,False)
+
+# analyze how well we fit the input spectrum
+espec = cbc_specf(kcbc) # compute the cbc original spec
+
+# compute the RMS error committed by the generated spectrum
+#find index of nyquist limit
+idx = (np.where(wavenumbers==knyquist)[0][0]) -1
+exact = cbc_specf(wavenumbers[2:idx])
+num = tkespec[2:idx]
+diff = np.abs(exact - num)/exact
+rmsE = np.sqrt(np.mean(diff*diff))
+print 'RMS Error = ', rmsE
 
 q, ((p1,p2),(p3,p4)) = plt.subplots(2,2)
-espec = cbc_specf(kcbc)
+
 p1.plot(kcbc, espec, 'ob', kcbc, ecbc, '-')
 p1.set_title('Interpolated Spectrum')
 p1.grid()
@@ -153,10 +195,3 @@ p4.matshow(v[:,:,nz/2])
 p4.set_title('v velocity')
 
 plt.show()
-
-if(savemat):
-  data={} # CREATE empty dictionary
-  data['U'] = u
-  data['V'] = v
-  data['W'] = w  
-  scipy.io.savemat('uvw.mat',data)

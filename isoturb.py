@@ -11,7 +11,7 @@ from numpy import linalg as LA
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMean,enableIO):
+def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf):
   ## grid generation
   # generate cell centered x-grid
   dx = lx/nx
@@ -91,78 +91,5 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf,computeMea
         v_[i,j,k] = np.sum(bm*sym)
         w_[i,j,k] = np.sum(bm*szm)
 
-#  # try to enforce divergence-free conditions
-#  count = 0
-#  for k in range(0,nz-1):
-#    for j in range(0,ny-1):
-#      for i in range(0,nx-1):
-#        src = (u_[i+1,j,k] - u_[i,j,k])/dx + (v_[i,j+1,k] - v_[i,j,k])/dy + (w_[i,j,k+1] - w_[i,j,k])/dz
-#        if(src > 1e-5):
-#          count += 1
-#          src = (u_[i+1,j,k] - u_[i,j,k])/dx + (v_[i,j+1,k] - v_[i,j,k])/dy
-#          #oldw = w_[i,j,k+1]
-#          w_[i,j,k+1] = w_[i,j,k] - dz*src
-#          #fac = w_[i,j,k+1]/oldw
-#          #print 'factor = ', fac
-#  print 'cells with divergence: ', count
-
-  count = 0
-  for k in range(0,nz-1):
-    for j in range(0,ny-1):
-      for i in range(0,nx-1):
-        src = (u_[i+1,j,k] - u_[i,j,k])/dx + (v_[i,j+1,k] - v_[i,j,k])/dy + (w_[i,j,k+1] - w_[i,j,k])/dz
-        if(src > 1e-2):
-          count += 1
-  print 'cells with divergence: ', count
-  
-  # compute mean velocities
-  if computeMean:
-    umean = np.mean(u_)
-    vmean = np.mean(v_)
-    wmean = np.mean(w_)  
-    print 'umean = ', umean
-    print 'vmean = ', vmean
-    print 'wmean = ', wmean
-      
-  #write to disk
-  if enableIO:
-    print 'Writing to disk. This may take a while...'
-    fu = gzip.open('u.txt.gz', 'w')
-    for k in range(0,nz):
-      for j in range(0,ny):
-        for i in range(0,nx):
-          x = i*dx
-          y = j*dy + dy/2.0
-          z = k*dz + dz/2.0
-          uu = u_[i,j,k]
-          fu.write('%.16f %.16f %.16f %.16f \n' % (x,y,z,uu))
-          #fu.write('%d %d %d %.16f \n' % (i,j,k,uu))
-    fu.close()
-    
-    fv = gzip.open('v.txt.gz', 'w')
-    for k in range(0,nz):
-      for j in range(0,ny):
-        for i in range(0,nx):
-          x = i*dx + dx/2.0
-          y = j*dy
-          z = k*dz + dz/2.0
-          vv = v_[i,j,k]
-          fv.write('%.16f %.16f %.16f %.16f \n' % (x,y,z,vv))      
-          #fv.write('%d %d %d %.16f \n' % (i,j,k,vv))
-    fv.close()
-    
-    fw = gzip.open('w.txt.gz', 'w')
-    for k in range(0,nz):
-      for j in range(0,ny):
-        for i in range(0,nx):
-          x = i*dx + dx/2.0
-          y = j*dy + dy/2.0
-          z = k*dz
-          ww = w_[i,j,k]
-          fw.write('%.16f %.16f %.16f %.16f \n' % (x,y,z,ww))      
-          #fw.write('%d %d %d %.16f \n' % (i,j,k,ww))          
-    fw.close()
-    #end if enable IO
-    
   print 'done. I am awesome!'
   return u_, v_, w_

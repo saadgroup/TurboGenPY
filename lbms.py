@@ -17,6 +17,7 @@ import isoturbo
 import matplotlib.pyplot as plt
 from fileformats import FileFormats
 from filters import spectralcutoff
+import isoio
 #load an experimental specturm. Alternatively, specify it via a function call
 cbcspec = np.loadtxt('cbc_spectrum.txt')
 kcbc=cbcspec[:,0]*100
@@ -94,11 +95,29 @@ wn1 = 15 #determined here from cbc spectrum properties
 #------------------------------------------------------------------------------
 t0 = time.time()
 if use_threads:
-  u,v,w = isoturbo.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf,computeMean, enableIO, fileformat)
+  u,v,w = isoturbo.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf)
 else:
-  u,v,w = isoturb.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf,computeMean, enableIO) # this doesnt support file formats yet
+  u,v,w = isoturb.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf) # this doesnt support file formats yet
 t1 = time.time()
 print 'it took me ', t1 - t0, ' s to generate the isotropic turbulence.'
+
+if (enableIO):
+  dx = lx/nx
+  dy = ly/ny
+  dz = lz/nz
+  if (use_threads):
+    isoio.writefileparallel(u,v,w,dx,dy,dz,fileformat)
+  else:
+    isoio.writefile('u.txt','x',dx,dy,dz,u,fileformat)
+    isoio.writefile('v.txt','y',dx,dy,dz,v,fileformat)
+    isoio.writefile('w.txt','z',dx,dy,dz,w,fileformat)  
+
+if(savemat):
+  data={} # CREATE empty dictionary
+  data['U'] = u
+  data['V'] = v
+  data['W'] = w  
+  scipy.io.savemat('uvw.mat',data)
 
 # compute mean velocities
 if computeMean:
@@ -165,10 +184,3 @@ p4.matshow(v[:,:,nz/2])
 p4.set_title('v velocity')
 
 plt.show()
-
-if(savemat):
-  data={} # CREATE empty dictionary
-  data['U'] = u
-  data['V'] = v
-  data['W'] = w  
-  scipy.io.savemat('uvw.mat',data)

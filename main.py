@@ -60,6 +60,9 @@ def power_spec(k):
 # specify whether you want to use threads or not to generate turbulence
 use_threads = True
 
+# specify whether you want to generate velocities at cell centered or staggered
+cell_centered = False
+
 #set the number of modes you want to use to represent the velocity.
 nmodes =100
 N = 32
@@ -74,7 +77,7 @@ savemat = False
 computeMean = True
 
 # check the divergence of the generated velocity field
-checkdivergence = False
+checkdivergence = True
 
 # input domain size in the x, y, and z directions. This value is typically
 # based on the largest length scale that your data has. For the cbc data,
@@ -99,16 +102,17 @@ wn1 = 15 #determined here from cbc spectrum properties
 #------------------------------------------------------------------------------
 t0 = time.time()
 if use_threads:
-  u,v,w = isoturbo.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf)
+  u,v,w = isoturbo.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf, cell_centered)
 else:
-  u,v,w = isoturb.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf)
+  u,v,w = isoturb.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf, cell_centered)
 t1 = time.time()
 print 'it took me ', t1 - t0, ' s to generate the isotropic turbulence.'
 
+dx = lx/nx
+dy = ly/ny
+dz = lz/nz
+
 if (enableIO):
-  dx = lx/nx
-  dy = ly/ny
-  dz = lz/nz
   if (use_threads):
     isoio.writefileparallel(u,v,w,dx,dy,dz,fileformat)
   else:

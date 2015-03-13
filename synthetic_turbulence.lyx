@@ -288,7 +288,7 @@ or
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\sum_{m}\mathbf{k}_{m}\cdot\hat{\mathbf{u}}_{m}\sin(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})=0
+\sum_{m}\mathbf{k}_{m}\cdot\hat{\mathbf{u}}_{m}\sin(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})=0\label{eq:continuity-continuous}
 \end{equation}
 
 \end_inset
@@ -330,7 +330,28 @@ where
 \end_inset
 
 .
- The velocity vector at point 
+ Note that this is the original formulation presented in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "davidson2008hybrid"
+
+\end_inset
+
+.
+ While 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "eq:continuity-continuous"
+
+\end_inset
+
+ is true in the continuous sense, it becomes invalid when discretized leading
+ to a diverging velocity field.
+ I will show you how to fix this in the next paragraph.
+\end_layout
+
+\begin_layout Standard
+The velocity vector at point 
 \begin_inset Formula $\mathbf{x}$
 \end_inset
 
@@ -362,6 +383,226 @@ q_{m}=2\sqrt{E(k_{m})\Delta k}
 \end_inset
 
 
+\end_layout
+
+\begin_layout Section
+Enforcing Continuity
+\end_layout
+
+\begin_layout Standard
+Given an analytic vector field 
+\begin_inset Formula $\mathbf{u}$
+\end_inset
+
+ such that 
+\begin_inset Formula $\nabla\cdot\mathbf{u}=0$
+\end_inset
+
+, we show here that this does not hold for the discrete continuity equation.
+ Since different codes use different discretization schemes for the dilatation
+ term (staggered vs collocated), one must first write the divergence formula
+ in the desired discrete form and then infer the condition that enforces
+ discrete divergence.
+ A classic example is the Taylor-Green vortex initialization.
+ This velocity field is given by
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+u=\sin x\cos y
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\varv=-\cos x\sin y
+\end{equation}
+
+\end_inset
+
+It is true that, for this velocity field, 
+\begin_inset Formula $\nabla\cdot\mathbf{u}=0$
+\end_inset
+
+ because
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\nabla\cdot\mathbf{u}=\frac{\partial u}{\partial x}+\frac{\partial\varv}{\partial y}=\cos x\cos y-\cos x\cos y=0
+\end{equation}
+
+\end_inset
+
+However, when used to initialize a discrete grid, the resulting discrete
+ continuity equation does not always hold true.
+ Take for instance the Taylor-Green vortex and initialize a staggered grid.
+ Continuity, to second order in space on a staggered grid implies
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{\partial u}{\partial x}+\frac{\partial\varv}{\partial y}\approx\frac{u(x+\tfrac{\Delta x}{2},y)-u(x-\tfrac{\Delta x}{2},y)}{\Delta x}+\frac{\varv(x,y+\tfrac{\Delta y}{2})-\varv(x,y-\tfrac{\Delta y}{2})}{\Delta y}
+\end{equation}
+
+\end_inset
+
+Then, using the formula for 
+\begin_inset Formula $u$
+\end_inset
+
+ and 
+\begin_inset Formula $\varv$
+\end_inset
+
+, e.g.
+ 
+\begin_inset Formula $u(x+\tfrac{\Delta x}{2},y)=\sin(x+\tfrac{\Delta x}{2})\cos y$
+\end_inset
+
+, etc..., one recovers
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{\partial u}{\partial x}+\frac{\partial\varv}{\partial y}\approx2\cos x\cos y\left[\frac{\sin\left(\frac{\Delta x}{2}\right)}{\Delta x}-\frac{\sin\left(\frac{\Delta y}{2}\right)}{\Delta y}\right]
+\end{equation}
+
+\end_inset
+
+which is guaranteed to be zero when 
+\begin_inset Formula $\Delta x=\Delta y$
+\end_inset
+
+.
+ A nonuniform grid spacing will always result in a diverging initial condition.
+ The overall less that I'd like to convey here is that it is generally preferabl
+e to operate with the discrete form of equations since those usually bring
+ up hidden issues that can be easily missed in the continuous sense.
+\end_layout
+
+\begin_layout Standard
+Back to our isotropic velocity field, recall that 
+\begin_inset Formula 
+\begin{equation}
+\mathbf{u}(\mathbf{x})=\sum_{m=1}^{M}q_{m}\cos(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})\boldsymbol{\sigma}_{m}
+\end{equation}
+
+\end_inset
+
+Now, write the continuity equation in discrete form, assuming a staggered
+ grid, we have
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{\partial u}{\partial x}+\frac{\partial\varv}{\partial y}+\frac{\partial w}{\partial z}\approx\frac{u(x+\tfrac{\Delta x}{2},y,z)-u(x-\tfrac{\Delta x}{2},y,z)}{\Delta x}+\frac{\varv(x,y+\tfrac{\Delta y}{2},z)-\varv(x,y-\tfrac{\Delta y}{2},z)}{\Delta y}+\frac{w(x,y,z+\tfrac{\Delta z}{2})-w(x,y,z-\tfrac{\Delta z}{2})}{\Delta z}
+\end{equation}
+
+\end_inset
+
+Here, for example,
+\begin_inset Formula 
+\begin{equation}
+u(x+\tfrac{\Delta x}{2},y,z)=\sum_{m=1}^{M}q_{m}\cos(k_{m,x}(x+\tfrac{\Delta x}{2})+k_{m,y}y+k_{m,z}z-\psi_{m})\sigma_{m,x}
+\end{equation}
+
+\end_inset
+
+Upon careful substitution and tedious trigonometric operations (which are
+ rendered begnin when using mathematica, bless Stephen Wolfram), we recover
+ the following
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{\partial u}{\partial x}+\frac{\partial\varv}{\partial y}+\frac{\partial w}{\partial z}\approx-\sum_{m=1}^{M}2\left[\frac{\sigma_{m,x}}{\Delta x}\sin(\tfrac{1}{2}k_{m,x}\Delta x)+\frac{\sigma_{m,y}}{\Delta y}\sin(\tfrac{1}{2}k_{m,y}\Delta y)+\frac{\sigma_{m,z}}{\Delta z}\sin(\tfrac{1}{2}k_{m,z}\Delta z)\right]\sin(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})
+\end{equation}
+
+\end_inset
+
+or, written in a more convenient form
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{\partial u}{\partial x}+\frac{\partial\varv}{\partial y}+\frac{\partial w}{\partial z}\approx-\sum_{m=1}^{M}\boldsymbol{\sigma}_{m}\cdot\tilde{\mathbf{k}}_{m}\sin(\mathbf{k}_{m}\cdot\mathbf{x}-\psi_{m})\label{eq:continuity-discrete}
+\end{equation}
+
+\end_inset
+
+where
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\tilde{\mathbf{k}}_{m}\equiv\frac{2}{\Delta x}\sin(\tfrac{1}{2}k_{m,x}\Delta x)\mathbf{i}+\frac{2}{\Delta y}\sin(\tfrac{1}{2}k_{m,y}\Delta y)\mathbf{j}+\frac{2}{\Delta z}\sin(\tfrac{1}{2}k_{m,z}\Delta z)\mathbf{k}
+\end{equation}
+
+\end_inset
+
+A sufficient condition for the discrete continuity equation given in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "eq:continuity-discrete"
+
+\end_inset
+
+ to be zero is to make
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\boldsymbol{\sigma}_{m}\cdot\tilde{\mathbf{k}}_{m}=0,\quad\forall m
+\end{equation}
+
+\end_inset
+
+This means that instead of selecting 
+\begin_inset Formula $\boldsymbol{\sigma}_{m}$
+\end_inset
+
+ such that it is perpendicular to 
+\begin_inset Formula $\mathbf{k}_{m}$
+\end_inset
+
+(
+\begin_inset Formula $\boldsymbol{\sigma}_{m}\cdot\mathbf{k}_{m}=0$
+\end_inset
+
+), we instead choose 
+\begin_inset Formula $\boldsymbol{\sigma}_{m}$
+\end_inset
+
+to be perpendicular to 
+\begin_inset Formula $\tilde{\mathbf{k}}_{m}$
+\end_inset
+
+.
+ Interestingly, in the limit as the grid spacing approaches zero, 
+\begin_inset Formula $\tilde{\mathbf{k}}_{m}$
+\end_inset
+
+ will approach 
+\begin_inset Formula $\mathbf{k}_{m}$
+\end_inset
+
+.
+ This is so cool!
 \end_layout
 
 \begin_layout Section
@@ -561,6 +802,22 @@ Compute the unit vector
 \end_inset
 
 
+\end_layout
+
+\begin_layout Itemize
+To enforce continuity, compute vector 
+\begin_inset Formula $\tilde{\mathbf{k}}_{m}$
+\end_inset
+
+ and make 
+\begin_inset Formula $\boldsymbol{\sigma}_{m}$
+\end_inset
+
+ perpendicular to 
+\begin_inset Formula $\tilde{\mathbf{k}}_{m}$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Itemize

@@ -58,7 +58,8 @@ def power_spec(k):
 #----------------------------------------------------------------------------------------------
 
 # specify whether you want to use threads or not to generate turbulence
-use_threads = True
+use_parallel = True
+patches=[3,2,1]
 
 # specify whether you want to generate velocities at cell centered or staggered
 cell_centered = False
@@ -67,25 +68,25 @@ cell_centered = False
 nmodes =100
 N = 32
 # write to file
-enableIO = True # enable writing to file
+enableIO = False # enable writing to file
 fileformat = FileFormats.FLAT  # Specify the file format supported formats are: FLAT, IJK, XYZ
 
 # save the velocity field as a matlab matrix (.mat)
 savemat = False
 
 # compute the mean of the fluctuations for verification purposes
-computeMean = True
+computeMean = False
 
 # check the divergence of the generated velocity field
-checkdivergence = True
+checkdivergence = False
 
 # input domain size in the x, y, and z directions. This value is typically
 # based on the largest length scale that your data has. For the cbc data,
 # the largest length scale corresponds to a wave number of 15, hence, the
 # domain size is L = 2pi/15.
-lx = 2.0*pi/15.0
-ly = 2.0*pi/15.0
-lz = 2.0*pi/15.0
+lx = 9*2.0*pi/100.0
+ly = 9*2.0*pi/100.0
+lz = 9*2.0*pi/100.0
 
 # input number of cells (cell centered control volumes). This will
 # determine the maximum wave number that can be represented on this grid.
@@ -101,8 +102,8 @@ wn1 = 15 #determined here from cbc spectrum properties
 # END USER INPUT
 #------------------------------------------------------------------------------
 t0 = time.time()
-if use_threads:
-  u,v,w = isoturbo.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf, cell_centered)
+if use_parallel:
+  u,v,w = isoturbo.generate_isotropic_turbulence(patches,lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf, cell_centered)
 else:
   u,v,w = isoturb.generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,cbc_specf, cell_centered)
 t1 = time.time()
@@ -113,7 +114,7 @@ dy = ly/ny
 dz = lz/nz
 
 if (enableIO):
-  if (use_threads):
+  if (use_parallel):
     isoio.writefileparallel(u,v,w,dx,dy,dz,fileformat)
   else:
     isoio.writefile('u.txt','x',dx,dy,dz,u,fileformat)
@@ -164,7 +165,7 @@ if checkdivergence:
   print 'cells with divergence: ', count      
 
 # verify that the generated velocities fit the spectrum
-knyquist, wavenumbers, tkespec = compute_tke_spectrum(u,v,w,lx,ly,lz,False)
+knyquist, wavenumbers, tkespec = compute_tke_spectrum(u,v,w,lx,ly,lz,True)
 
 # analyze how well we fit the input spectrum
 espec = cbc_specf(kcbc) # compute the cbc original spec

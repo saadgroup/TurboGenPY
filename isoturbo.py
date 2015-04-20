@@ -75,7 +75,7 @@ def compute_turbulence(nthread,dx,dy,dz,psi,um,kx,ky,kz,sxm,sym,szm,nx,ny,nz,nxA
   return ip, jp, kp, u_, v_, w_
 #------------------------------------------------------------------------------
 
-def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf, cellCentered):
+def generate_isotropic_turbulence(patches, lx,ly,lz,nx,ny,nz,nmodes,wn1,especf, cellCentered):
   ## grid generation
   # generate cell centered x-grid
   dx = lx/nx
@@ -155,10 +155,12 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf, cellCente
   um = sqrt(espec*dkn)
       
   #  must use Manager queue here, or will not work
-  nthreads = 2;
-  nxt = nx/nthreads;
-  nyt = nx/nthreads;
-  nzt = nx/nthreads;
+  nxthreads = patches[0];
+  nythreads = patches[1];
+  nzthreads = patches[2]; 
+  nxt = nx/nxthreads;
+  nyt = nx/nythreads;
+  nzt = nx/nzthreads;
   
   manager = mp.Manager()
   mq = manager.Queue()    
@@ -167,9 +169,9 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf, cellCente
   #fire off workers
   jobs = []
   nthread = 0
-  for k in range(1,nthreads+1):
-    for j in range(1,nthreads+1):
-      for i in range(1,nthreads+1):
+  for k in range(1,nzthreads+1):
+    for j in range(1,nythreads+1):
+      for i in range(1,nxthreads+1):
         nthread= nthread+1
         job = pool.apply_async(compute_turbulence, (nthread, dx,dy,dz,psi,um,kx,ky,kz,sxm,sym,szm,nxt,nyt,nzt, nx,ny,nz, cellCentered,i,j,k,mq))
         jobs.append(job)
@@ -197,9 +199,9 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf, cellCente
   vall=zeros([nx,ny,nz])
   wall=zeros([nx,ny,nz])
   nthread = 0
-  for k in range(1,nthreads+1):
-    for j in range(1,nthreads+1):
-      for i in range(1,nthreads+1):
+  for k in range(1,nzthreads+1):
+    for j in range(1,nythreads+1):
+      for i in range(1,nxthreads+1):
         uall[(i-1)*nxt:i*nxt,(j-1)*nyt:j*nyt,(k-1)*nzt:k*nzt] = uarrays[nthread]
         vall[(i-1)*nxt:i*nxt,(j-1)*nyt:j*nyt,(k-1)*nzt:k*nzt] = varrays[nthread]
         wall[(i-1)*nxt:i*nxt,(j-1)*nyt:j*nyt,(k-1)*nzt:k*nzt] = warrays[nthread]

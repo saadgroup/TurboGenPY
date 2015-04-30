@@ -175,6 +175,8 @@ def compute_tke_spectrum(u,v,w,lx,ly,lz,smooth):
         tke_spectrum[k] = tke_spectrum[k] + tkeh[kx,ky,kz]
 
   tke_spectrum = tke_spectrum/knorm
+#  tke_spectrum = tke_spectrum[1:]
+#  wave_numbers = wave_numbers[1:]
   if smooth:
     tkespecsmooth = movingaverage(tke_spectrum, 5) #smooth the spectrum
     tkespecsmooth[0:4] = tke_spectrum[0:4] # get the first 4 values from the original data
@@ -185,3 +187,11 @@ def compute_tke_spectrum(u,v,w,lx,ly,lz,smooth):
   return knyquist, wave_numbers, tke_spectrum
 
 #------------------------------------------------------------------------------
+
+def compute_tke_spectrum_flatarrays(u, v, w, nx, ny, nz, lx, ly, lz, smooth):
+  print nx
+#  unew = u.reshape([nx,ny,nz])
+#  vnew = v.reshape([nx,ny,nz])
+#  wnew = w.reshape([nx,ny,nz])
+#  k, w, espec  = compute_tke_spectrum(unew,vnew,wnew,lx,ly,lz, smooth)
+#  return k, w, espec

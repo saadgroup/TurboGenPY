@@ -9,8 +9,6 @@ import numpy as np
 import time
 from numpy import sin, cos, sqrt, ones, zeros, pi, arange
 from numpy import linalg as LA
-import matplotlib.pyplot as plt
-
 #------------------------------------------------------------------------------
 
 def compute_turbulence(nthread,dx,dy,dz,psi,um,kx,ky,kz,sxm,sym,szm,nx,ny,nz,nxAll, nyAll, nzAll,ip,jp,kp, q):
@@ -84,9 +82,6 @@ def generate_isotropic_turbulence(patches, lx,ly,lz,nx,ny,nz,nmodes,wn1,especf):
   kx = sin(theta)*cos(phi)*wn
   ky = sin(theta)*sin(phi)*wn
   kz = cos(theta)*wn
-
-  plt.hist(kz/wn,bins=10)
-  plt.show()
 
   # create divergence vector
   ktx = np.sin(kx*dx/2.0)/(dx)

@@ -11,7 +11,7 @@ import time
 #------------------------------------------------------------------------------
 
 def writefileparallel(u, v, w, dx, dy, dz, fileformat):
-  print 'Writing to disk. This may take a while...'
+  print ('Writing to disk. This may take a while...')
   writeufile = mp.Process(target=writefile, args=('u.txt','x',dx,dy,dz,u, fileformat))
   writeufile.start()
   
@@ -74,6 +74,6 @@ def writefile(filename, velcomponent, dx, dy, dz, velarray, fileformat):
           f.write('%.16f\n' % u)        
   f.close()
   t1 = time.time()
-  print 'Done writing to disk in ', t1 - t0, 's' 
+  print ('Done writing to disk in ', t1 - t0, 's')
 
 #------------------------------------------------------------------------------

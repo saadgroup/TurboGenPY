@@ -72,15 +72,15 @@ def compute_tke_spectrum_1d(u,lx,ly,lz,smooth):
   
   tke_spectrum = zeros(len(wave_numbers))
   
-  for kx in xrange(nx):
+  for kx in range(nx):
     rkx = kx
     if (kx > kxmax):
       rkx = rkx - (nx)
-    for ky in xrange(ny):
+    for ky in range(ny):
       rky = ky
       if (ky>kymax):
         rky=rky - (ny)
-      for kz in xrange(nz):        
+      for kz in range(nz):
         rkz = kz
         if (kz>kzmax):
           rkz = rkz - (nz)
@@ -158,15 +158,15 @@ def compute_tke_spectrum(u,v,w,lx,ly,lz,smooth):
   
   tke_spectrum = zeros(len(wave_numbers))
   
-  for kx in xrange(nx):
+  for kx in range(nx):
     rkx = kx
     if (kx > kxmax):
       rkx = rkx - (nx)
-    for ky in xrange(ny):
+    for ky in range(ny):
       rky = ky
       if (ky>kymax):
         rky=rky - (ny)
-      for kz in xrange(nz):        
+      for kz in range(nz):
         rkz = kz
         if (kz>kzmax):
           rkz = rkz - (nz)
@@ -189,9 +189,8 @@ def compute_tke_spectrum(u,v,w,lx,ly,lz,smooth):
 #------------------------------------------------------------------------------
 
 def compute_tke_spectrum_flatarrays(u, v, w, nx, ny, nz, lx, ly, lz, smooth):
-  print nx
-#  unew = u.reshape([nx,ny,nz])
-#  vnew = v.reshape([nx,ny,nz])
-#  wnew = w.reshape([nx,ny,nz])
-#  k, w, espec  = compute_tke_spectrum(unew,vnew,wnew,lx,ly,lz, smooth)
-#  return k, w, espec
+ unew = u.reshape([nx,ny,nz])
+ vnew = v.reshape([nx,ny,nz])
+ wnew = w.reshape([nx,ny,nz])
+ k, w, espec  = compute_tke_spectrum(unew,vnew,wnew,lx,ly,lz, smooth)
+ return k, w, espec

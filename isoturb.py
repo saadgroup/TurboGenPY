@@ -33,7 +33,8 @@ Created on Mon May 12 09:31:54 2014
 import numpy as np
 from numpy import sin, cos, sqrt, ones, zeros, pi, arange
 
-def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf):
+
+def generate_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, especf):
   """
   Given an energy spectrum, this function computes a discrete, staggered, three 
   dimensional velocity field in a box whose energy spectrum corresponds to the input energy 
@@ -75,7 +76,7 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf):
   
   # highest wave number that can be represented on this grid (nyquist limit)
   wnn = max(np.pi/dx, max(np.pi/dy, np.pi/dz));
-  print 'I will generate data up to wave number: ', wnn
+  print ('I will generate data up to wave number: ', wnn)
   
   # wavenumber step
   dk = (wnn-wn1)/nmodes
@@ -108,12 +109,11 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf):
   smag = sqrt(sxm*sxm + sym*sym + szm*szm)
   sxm = sxm/smag
   sym = sym/smag
-  szm = szm/smag  
+  szm = szm/smag
     
   # verify that the wave vector and sigma are perpendicular
   kk = np.sum(ktx*sxm + kty*sym + ktz*szm)
-  print 'Orthogonality of k and sigma (divergence in wave space):'
-  print kk
+  print ('Orthogonality of k and sigma (divergence in wave space):', kk)
   
   # get the modes   
   km = wn
@@ -144,5 +144,89 @@ def generate_isotropic_turbulence(lx,ly,lz,nx,ny,nz,nmodes,wn1,especf):
         w_[i,j,k] = np.sum(bmz*szm)          
   
         
-  print 'done. I am awesome!'
+  print ('done. I am awesome!')
   return u_, v_, w_
+
+
+def generate_scalar_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, especf):
+  """
+  Given an energy spectrum, this function computes a discrete, staggered, three 
+  dimensional velocity field in a box whose energy spectrum corresponds to the input energy 
+  spectrum up to the Nyquist limit dictated by the grid
+
+  This function returns u, v, w as the axial, transverse, and azimuthal velocities.
+
+  Parameters:
+  -----------  
+  lx: float
+    The domain size in the x-direction.
+  ly: float
+    The domain size in the y-direction.
+  lz: float
+    The domain size in the z-direction.  
+  nx: integer
+    The number of grid points in the x-direction.
+  ny: integer
+    The number of grid points in the y-direction.
+  nz: integer
+    The number of grid points in the z-direction.
+  wn1: float
+    Smallest wavenumber. Typically dictated by spectrum or domain size.
+  espec: functor
+    A callback function representing the energy spectrum.
+  """
+
+  # generate cell centered x-grid
+  dx = lx / nx
+  dy = ly / ny
+  dz = lz / nz
+
+  ## START THE FUN!
+  # compute random angles
+  phi = 2.0 * pi * np.random.uniform(0.0, 1.0, nmodes);
+  nu = np.random.uniform(0.0, 1.0, nmodes);
+  theta = np.arccos(2.0 * nu - 1.0);
+  psi = np.random.uniform(-pi / 2.0, pi / 2.0, nmodes);
+
+  # highest wave number that can be represented on this grid (nyquist limit)
+  wnn = max(np.pi / dx, max(np.pi / dy, np.pi / dz));
+  print ('I will generate data up to wave number: ', wnn)
+
+  # wavenumber step
+  dk = (wnn - wn1) / nmodes
+
+  # wavenumber at cell centers
+  wn = wn1 + 0.5 * dk + arange(0, nmodes) * dk
+
+  dkn = ones(nmodes) * dk
+
+  #   wavenumber vector from random angles
+  kx = sin(theta) * cos(phi) * wn
+  ky = sin(theta) * sin(phi) * wn
+  kz = cos(theta) * wn
+
+  # get the modes
+  km = wn
+
+  espec = especf(km)
+  espec = espec.clip(0.0)
+
+  # generate turbulence at cell centers
+  um = sqrt(espec * dkn)
+  scalar_ = zeros([nx, ny, nz])
+
+  xc = dx / 2.0 + arange(0, nx) * dx
+  yc = dy / 2.0 + arange(0, ny) * dy
+  zc = dz / 2.0 + arange(0, nz) * dz
+
+  for k in range(0, nz):
+    for j in range(0, ny):
+      for i in range(0, nx):
+        # for every grid point (i,j,k) do the fourier summation
+        arg = kx * xc[i] + ky * yc[j] + kz * zc[k] - psi
+        bm = 2.0 * um * cos(arg)
+        scalar_[i, j, k] = np.sum(bm)
+
+
+        print ('done. I am awesome!')
+  return scalar_

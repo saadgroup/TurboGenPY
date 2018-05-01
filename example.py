@@ -15,6 +15,7 @@ import isoturb
 import isoturbo
 from fileformats import FileFormats
 import isoio
+import cudaturbo
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -83,6 +84,7 @@ def power_spec(k):
 
 # specify whether you want to use threads or not to generate turbulence
 use_parallel = False
+use_cuda = False
 patches = [1, 1, 8]
 filespec = 'cbc'
 whichspec = cbc_spec
@@ -90,6 +92,11 @@ whichspec = cbc_spec
 # set the number of modes you want to use to represent the velocity.
 nmodes = 100
 N = 32
+
+print('Grid Points:')
+n = int(input())
+print('Modes:')
+nmodesw = int(input())
 
 # write to file
 enableIO = False  # enable writing to file
@@ -128,8 +135,11 @@ wn1 = 15  # determined here from cbc spectrum properties
 t0 = time.time()
 if use_parallel:
     u, v, w = isoturbo.generate_isotropic_turbulence(patches, lx, ly, lz, nx, ny, nz, nmodes, wn1, whichspec)
+elif use_cuda:
+    u, v, w = cudaturbo.generate_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, whichspec)
 else:
     u, v, w = isoturb.generate_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, whichspec)
+
 t1 = time.time()
 print('it took me ', t1 - t0, ' s to generate the isotropic turbulence.')
 

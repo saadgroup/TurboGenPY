@@ -21,7 +21,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-plt.interactive(True)
+#plt.interactive(True)
 
 # load an experimental specturm. Alternatively, specify it via a function call
 cbcspec = np.loadtxt('cbc_spectrum.txt')
@@ -84,7 +84,7 @@ def power_spec(k):
 
 # specify whether you want to use threads or not to generate turbulence
 use_parallel = False
-use_cuda = False
+use_cuda = True
 patches = [1, 1, 8]
 filespec = 'cbc'
 whichspec = cbc_spec
@@ -94,9 +94,9 @@ nmodes = 100
 N = 32
 
 print('Grid Points:')
-n = int(input())
+N = int(input())
 print('Modes:')
-nmodesw = int(input())
+nmodes = int(input())
 
 # write to file
 enableIO = False  # enable writing to file

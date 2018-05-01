@@ -3,7 +3,7 @@ TurboGenPY is a synthetic isotropic turbulence generator for structured grids. I
 turbulent energy spectrum and produce a three dimensional vector field (e.g. velocity) whose energy spectrum
 matches the input spectrum up to the discrete nyquist limit.
 
-# Supported Spectr
+# Supported Spectra
 TurboGenPY supports three spectra:
 1. CBC (Comte-Bellot, Corrsin)
 2. von-Karman Pao

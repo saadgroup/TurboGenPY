@@ -7,15 +7,19 @@ Created on Thu May  8 20:08:01 2014
 # !/usr/bin/env python
 from scipy import interpolate
 import numpy as np
-from numpy import pi, exp
+from numpy import pi
 import time
 import scipy.io
 from tkespec import compute_tke_spectrum
 import isoturb
 import isoturbo
-import matplotlib.pyplot as plt
 from fileformats import FileFormats
 import isoio
+
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+
 plt.interactive(True)
 
 # load an experimental specturm. Alternatively, specify it via a function call
@@ -84,7 +88,7 @@ filespec = 'cbc'
 whichspec = cbc_spec
 
 # set the number of modes you want to use to represent the velocity.
-nmodes = 500
+nmodes = 100
 N = 32
 
 # write to file
@@ -98,7 +102,7 @@ savemat = False
 computeMean = True
 
 # check the divergence of the generated velocity field
-checkdivergence = True
+checkdivergence = False
 
 # input domain size in the x, y, and z directions. This value is typically
 # based on the largest length scale that your data has. For the cbc data,
@@ -218,53 +222,53 @@ exact = whichspec(wavenumbers[4:idx])
 num = tkespec[4:idx]
 diff = np.abs((exact - num) / exact)
 meanE = np.mean(diff)
-print('got here ')
-# print
-# 'Mean Error = ', meanE * 100.0, '%'
-# rmsE = np.sqrt(np.mean(diff * diff))
-# print
-# 'RMS Error = ', rmsE * 100, '%'
+
+print('Mean Error = ', meanE * 100.0, '%')
+rmsE = np.sqrt(np.mean(diff * diff))
+print('RMS Error = ', rmsE * 100, '%')
 
 # np.savetxt('tkespec_' + filespec + '_' + str(N) + '.txt',np.transpose([wavenumbers,tkespec]))
+# plt.rc('text', usetex=True)
+plt.rc("font", size=10, family='serif')
+
+fig = plt.figure(figsize=(3.5, 2.8), dpi=200, constrained_layout=True)
 
 
-
-# fig = plt.figure(figsize=(3.5, 2.6), dpi=100)
-# plt.rc("font", size=10, family='serif')
 wnn = np.arange(wn1, 2000)
-l1, = plt.loglog(kcbc,ecbc, 'k-', label='input')
-plt.loglog(wnn, whichspec(wnn), 'k-', label='input')
-l2, = plt.loglog(wavenumbers, tkespec, 'bo-', markersize=4, markerfacecolor='w', markevery=1, label='computed')
-# plt.axis([8, 10000, 1e-7, 1e-2])
-# # plt.xticks(fontsize=12)
-# # plt.yticks(fontsize=12)
-# plt.axvline(x=knyquist, linestyle='--', color='black')
-# plt.xlabel('$\kappa$ (1/m)')
-# plt.ylabel('$E(\kappa)$ (m$^3$/s$^2$)')
-# plt.grid()
+
+l1, = plt.loglog(wnn, whichspec(wnn), 'k-', label='input')
+l2, = plt.loglog(wavenumbers[1:6], tkespec[1:6], 'bo--', markersize=3, markerfacecolor='w', markevery=1, label='computed')
+plt.loglog(wavenumbers[5:], tkespec[5:], 'bo--', markersize=3, markerfacecolor='w', markevery=4, label='computed')
+plt.axis([8, 10000, 1e-7, 1e-2])
+# plt.xticks(fontsize=12)
+# plt.yticks(fontsize=12)
+plt.axvline(x=knyquist, linestyle='--', color='black')
+plt.xlabel('$\kappa$ (1/m)')
+plt.ylabel('$E(\kappa)$ (m$^3$/s$^2$)')
+plt.grid()
 # plt.gcf().tight_layout()
-# # plt.title(str(N)+'$^3$')
-# # plt.legend(handles=[l1,l2],loc=3)
-# # fig.savefig('tkespec_' + filespec + '_' + str(N) + '.pdf')
+plt.title(str(N)+'$^3$')
+plt.legend(handles=[l1, l2], loc=1)
+fig.savefig('tkespec_' + filespec + '_' + str(N) + '.pdf')
+
+# q, ((p1,p2),(p3,p4)) = plt.subplots(2,2)
+# q, ((p1,p2)) = plt.subplots(1,2)
+# p1.plot(kcbc, whichspec(kcbc), 'ob', kcbc, ecbc, '-')
+# p1.set_title('Interpolated Spectrum')
+# p1.grid()
+# p1.set_xlabel('wave number')
+# p1.set_ylabel('E')
 #
-# # q, ((p1,p2),(p3,p4)) = plt.subplots(2,2)
-# #
-# # p1.plot(kcbc, espec, 'ob', kcbc, ecbc, '-')
-# # p1.set_title('Interpolated Spectrum')
-# # p1.grid()
-# # p1.set_xlabel('wave number')
-# # p1.set_ylabel('E')
-# #
-# # p2.loglog(kcbc, ecbc, '-', wavenumbers, tkespec, 'ro-')
-# # p2.axvline(x=knyquist, linestyle='--', color='black')
-# # p2.set_title('Spectrum of generated turbulence')
-# # p2.grid()
-# #
-# ## contour plot
-# # p3.matshow(u[:,:,nz/2])
-# # p3.set_title('u velocity')
-# #
-# # p4.matshow(v[:,:,nz/2])
-# # p4.set_title('v velocity')
+# p2.loglog(kcbc, ecbc, '-', wavenumbers, tkespec, 'ro-')
+# p2.axvline(x=knyquist, linestyle='--', color='black')
+# p2.set_title('Spectrum of generated turbulence')
+# p2.grid()
+
+# contour plot
+# p3.matshow(u[:,:,nz/2])
+# p3.set_title('u velocity')
+#
+# p4.matshow(v[:,:,nz/2])
+# p4.set_title('v velocity')
 # #
 plt.show(1)

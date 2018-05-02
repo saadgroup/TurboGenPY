@@ -4,14 +4,6 @@ Synthetic Isotropic Turbulence based on a Specified Energy Spectrum
 
 :Author: Tony Saad
 
-.. role:: math(raw)
-   :format: html latex
-..
-
-.. role:: raw-latex(raw)
-   :format: latex
-..
-
 Formulation
 ===========
 

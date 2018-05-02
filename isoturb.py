@@ -1,5 +1,5 @@
 #
-#  IsoTurbGen.h
+#  isoturb.py
 #
 #  The MIT License (MIT)
 #

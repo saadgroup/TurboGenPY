@@ -129,9 +129,9 @@ def generate_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, especf):
     kz = cos(theta) * wn
 
     # create divergence vector
-    ktx = np.sin(kx * dx / 2.0) / (dx)
-    kty = np.sin(ky * dy / 2.0) / (dy)
-    ktz = np.sin(kz * dz / 2.0) / (dz)
+    ktx = np.sin(kx * dx / 2.0) / dx
+    kty = np.sin(ky * dy / 2.0) / dy
+    ktz = np.sin(kz * dz / 2.0) / dz
 
     # Enforce Mass Conservation
     phi1 = 2.0 * pi * np.random.uniform(0.0, 1.0, nmodes)

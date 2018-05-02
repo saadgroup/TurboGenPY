@@ -18,10 +18,10 @@ import isoio
 import cudaturbo
 
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-plt.interactive(True)
+#plt.interactive(True)
 
 # load an experimental specturm. Alternatively, specify it via a function call
 cbcspec = np.loadtxt('cbc_spectrum.txt')
@@ -298,4 +298,4 @@ fig.savefig('tkespec_' + filespec + '_' + str(N) + '.pdf')
 # p4.matshow(v[:,:,nz/2])
 # p4.set_title('v velocity')
 # #
-plt.show(1)
+#plt.show(1)

@@ -157,9 +157,9 @@ def generate_isotropic_turbulence(patches, lx, ly, lz, nx, ny, nz, nmodes, wn1, 
     nxthreads = patches[0];
     nythreads = patches[1];
     nzthreads = patches[2];
-    nxt = nx / nxthreads;
-    nyt = nx / nythreads;
-    nzt = nx / nzthreads;
+    nxt = nx // nxthreads;
+    nyt = nx // nythreads;
+    nzt = nx // nzthreads;
 
     manager = mp.Manager()
     mq = manager.Queue()

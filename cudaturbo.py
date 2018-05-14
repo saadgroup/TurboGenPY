@@ -106,6 +106,7 @@ def generate_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, especf):
     dz = lz / nz
 
     # compute random angles
+    np.random.seed(7)
     phi = 2.0 * pi * np.random.uniform(0.0, 1.0, nmodes)
     nu = np.random.uniform(0.0, 1.0, nmodes)
     theta = np.arccos(2.0 * nu - 1.0)

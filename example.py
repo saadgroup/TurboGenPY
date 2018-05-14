@@ -6,6 +6,7 @@ Created on Thu May  8 20:08:01 2014
 """
 # !/usr/bin/env python
 from scipy import interpolate
+from scipy import integrate
 import numpy as np
 from numpy import pi
 import time
@@ -82,19 +83,41 @@ def power_spec(k):
 #  \$$$$$$   \$$$$$$  \$$$$$$$$ \$$   \$$       \$$$$$$ \$$   \$$ \$$        \$$$$$$     \$$
 # ----------------------------------------------------------------------------------------------
 
+
+import argparse
+__author__ = 'Tony Saad'
+parser = argparse.ArgumentParser(description='This is the Turbulence Generator.')
+parser.add_argument('-n','--res', help='Grid resolution',required=True, type=int)
+parser.add_argument('-m','--modes',help='Number of modes', required=True,type=int)
+parser.add_argument('-gpu','--cuda',help='Use a GPU if availalbe', required = False, action='store_true')
+parser.add_argument('-mp','--multiprocessor',help='Use the multiprocessing package', required = False,nargs='+', type=int)
+args = parser.parse_args() ## show values ##
+print ("grid res: %s" % args.res )
+#print ("Output file: %s" % args.output )
+N = int(args.res)
+print('N = ', N)
+nmodes = int(args.modes)
+print('M = ', nmodes)
 # specify whether you want to use threads or not to generate turbulence
+print('mp = ', args.multiprocessor)
 use_parallel = False
-patches = [1, 1, 8]
+patches = [1,1,8]
 
 # specify whether you want to use CUDA or not
 use_cuda = False
 
+if args.multiprocessor:
+    use_parallel = True
+    patches = args.multiprocessor
+    print('patches = ', patches)
+elif args.cuda:
+    use_cuda = True
+
 # specify which spectrum you want to use. Options are: cbc_spec, karman_spec, and power_spec
-whichspec = cbc_spec
+whichspec = karman_spec
 
 # specify the spectrum name to append to all output filenames
-filespec = 'cbc'
-
+filespec = 'vkp'
 
 # write to file
 enableIO = False  # enable writing to file
@@ -118,20 +141,20 @@ ly = 9 * 2.0 * pi / 100.0
 lz = 9 * 2.0 * pi / 100.0
 
 # enter the smallest wavenumber represented by this spectrum
-wn1 = 15  # determined here from cbc spectrum properties
+wn1 = 11.1111  # determined here from cbc spectrum properties
 
 # ------------------------------------------------------------------------------
 # END USER INPUT
 # ------------------------------------------------------------------------------
 
 # set the number of modes you want to use to represent the velocity.
-nmodes = 100
-N = 32
+#nmodes = 100
+#N = 32
 
-print('Grid Points:')
-N = int(input())
-print('Modes:')
-nmodes = int(input())
+#print('Grid Points:')
+#N = int(input())
+#print('Modes:')
+#nmodes = int(input())
 
 # input number of cells (cell centered control volumes). This will
 # determine the maximum wave number that can be represented on this grid.
@@ -152,7 +175,8 @@ elif use_cuda:
 else:
     u, v, w = isoturb.generate_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, whichspec)
 t1 = time.time()
-print('it took me ', t1 - t0, ' s to generate the isotropic turbulence.')
+elapsed_time = t1 - t0
+print('it took me ', elapsed_time, 's to generate the isotropic turbulence.')
 
 if enableIO:
     if use_parallel:
@@ -222,21 +246,22 @@ np.savetxt('tkespec_' + filespec + '_' + str(N) + '_' + str(nmodes) + '.txt', np
 # compare spectra
 # integral comparison:
 # find index of nyquist limit
-idx = (np.where(wavenumbers == knyquist)[0][0]) - 1
+idx = (np.where(wavenumbers == knyquist)[0][0]) - 2
 
 # km0 = 2.0 * np.pi / lx
 # km0 is the smallest wave number
 km0 = wn1
 # use a LOT of modes to compute the "exact" spectrum
-exactm = 10000
-dk0 = (knyquist - km0) / exactm
-exactRange = km0 + np.arange(0, exactm + 1) * dk0
-exactE = np.trapz(whichspec(exactRange), dx=dk0)
+#exactm = 10000
+#dk0 = (knyquist - km0) / exactm
+#exactRange = km0 + np.arange(0, exactm + 1) * dk0
+dk = wavenumbers[1] - wavenumbers[0]
+exactE = integrate.trapz(whichspec(wavenumbers[1:idx]), dx=dk)
 print(exactE)
-numE = np.trapz(tkespec[0:idx], dx=wavenumbers[1] - wavenumbers[0])
-print(wavenumbers)
+numE = integrate.trapz(tkespec[1:idx], dx=dk)
 diff = np.abs((exactE - numE)/exactE)
-print('Integral Error = ', diff * 100.0, '%')
+integralE = diff*100.0
+print('Integral Error = ', integralE, '%')
 # print
 # 'diff = ', abs(exactE - numE) / exactE * 100
 
@@ -245,7 +270,7 @@ print('Integral Error = ', diff * 100.0, '%')
 
 # compute the RMS error committed by the generated spectrum
 # find index of nyquist limit
-idx = (np.where(wavenumbers == knyquist)[0][0]) - 1
+#idx = (np.where(wavenumbers == knyquist)[0][0]) - 1
 exact = whichspec(wavenumbers[4:idx])
 num = tkespec[4:idx]
 diff = np.abs((exact - num) / exact)
@@ -254,6 +279,19 @@ meanE = np.mean(diff)
 print('Mean Error = ', meanE * 100.0, '%')
 rmsE = np.sqrt(np.mean(diff * diff))
 print('RMS Error = ', rmsE * 100, '%')
+
+
+#create an array to save time and error values
+array_toSave = np.zeros(4)
+array_toSave[1] = integralE
+array_toSave[0] = elapsed_time
+array_toSave[2] = meanE*100.0
+array_toSave[3] = rmsE*100.0
+
+# save time and error values in a txt file
+np.savetxt('time_error_' + filespec + '_' + str(N) + '_' + str(nmodes) + '.txt',array_toSave)
+#np.savetxt('cpuTime_' + filespec + '_' + str(N) + '_' + str(nmodes) + '.txt',time_elapsed)
+
 # -------------------------------------------------------------
 
 # plt.rc('text', usetex=True)

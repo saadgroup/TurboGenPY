@@ -24,53 +24,7 @@ import matplotlib.pyplot as plt
 
 #plt.interactive(True)
 
-# load an experimental specturm. Alternatively, specify it via a function call
-cbcspec = np.loadtxt('cbc_spectrum.txt')
-kcbc = cbcspec[:, 0] * 100
-ecbc = cbcspec[:, 1] * 1e-6
-especf = interpolate.interp1d(kcbc, ecbc, 'cubic')
-
-def cbc_spec(k):
-    return especf(k)
-
-
-# von karman-pao spectrum
-def vkp_spec(k):
-    nu = 1.0e-5
-    alpha = 1.452762113
-    urms = 0.25
-    ke = 40.0
-    kappae = np.sqrt(5.0 / 12.0) * ke
-    L = 0.746834 / kappae  # integral length scale - sqrt(Pi)*Gamma(5/6)/Gamma(1/3)*1/ke
-    #  L = 0.05 # integral length scale
-    #  Kappae = 0.746834/L
-    epsilon = urms * urms * urms / L
-    kappaeta = pow(epsilon, 0.25) * pow(nu, -3.0 / 4.0)
-    r1 = k / kappae
-    r2 = k / kappaeta
-    espec = alpha * urms * urms / kappae * pow(r1, 4) / pow(1.0 + r1 * r1, 17.0 / 6.0) * np.exp(-2.0 * r2 * r2)
-    return espec
-
-
-# power law spectrum
-def power_spec(k):
-    Nu = 1 * 1e-3
-    L = 0.1
-    Li = 1
-    ch = 1
-    cl = 10
-    p0 = 8
-    c0 = pow(10, 2)
-    Beta = 2
-    Eta = Li / 20.0
-    ES = Nu * Nu * Nu / (Eta * Eta * Eta * Eta)
-    x = k * Eta
-    fh = np.exp(-Beta * pow(pow(x, 4) + pow(ch, 4), 0.25) - ch)
-    x = k * L
-    fl = pow(x / pow(x * x + cl, 0.5), 5.0 / 3.0 + p0)
-    espec = c0 * pow(k, -5.0 / 3.0) * pow(ES, 2.0 / 3.0) * fl * fh
-    return espec
-
+import spectra
 
 # ----------------------------------------------------------------------------------------------
 # __    __   ______   ________  _______         ______  __    __  _______   __    __  ________
@@ -94,7 +48,7 @@ parser.add_argument('-m' , '--modes' , help='Number of modes', required=False,ty
 parser.add_argument('-gpu', '--cuda', help='Use a GPU if availalbe', required = False, action='store_true')
 parser.add_argument('-mp' , '--multiprocessor',help='Use the multiprocessing package', required = False,nargs='+', type=int)
 parser.add_argument('-o'  , '--output', help='Write data to disk', required = False,action='store_true')
-parser.add_argument('-spec', '--spectrum', help='Select spectrum. Defaults to cbc. Other options include: vkp, and power.', required = False, type=str)
+parser.add_argument('-spec', '--spectrum', help='Select spectrum. Defaults to cbc. Other options include: vkp, and kcm.', required = False, type=str)
 args = parser.parse_args()
 
 # parse grid resolution (nx, ny, nz)
@@ -160,12 +114,14 @@ inputspec = args.spectrum
 fileappend = inputspec + '_' + str(nx) + '.' + str(ny) + '.' + str(nz) + '_' + str(nmodes) + '_modes'
 
 print('input spec', inputspec)
-if inputspec != 'cbc' and inputspec != 'vkp' and inputspec != 'power':
+if inputspec != 'cbc' and inputspec != 'vkp' and inputspec != 'kcm':
 	print('Error: ', inputspec, ' is not a supported spectrum. Supported spectra are: cbc, vkp, and power. Please revise your input.')
 	exit()
-inputspec += '_spec'
+inputspec += '_spectrum'
 # now given a string name of the spectrum, find the corresponding function with the same name. use locals() because spectrum functions are defined in this module.
-whichspec = locals()[inputspec]
+# whichspec = locals()[inputspec]
+# whichspec = spectra.cbc_spectrum().evaluate
+whichspec = getattr(spectra, inputspec)().evaluate
 
 # write to file
 enableIO = False  # enable writing to file

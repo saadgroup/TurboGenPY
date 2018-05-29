@@ -30,12 +30,12 @@ kcbc = cbcspec[:, 0] * 100
 ecbc = cbcspec[:, 1] * 1e-6
 especf = interpolate.interp1d(kcbc, ecbc, 'cubic')
 
-
 def cbc_spec(k):
     return especf(k)
 
 
-def karman_spec(k):
+# von karman-pao spectrum
+def vkp_spec(k):
     nu = 1.0e-5
     alpha = 1.452762113
     urms = 0.25
@@ -52,6 +52,7 @@ def karman_spec(k):
     return espec
 
 
+# power law spectrum
 def power_spec(k):
     Nu = 1 * 1e-3
     L = 0.1
@@ -86,13 +87,14 @@ def power_spec(k):
 
 import argparse
 __author__ = 'Tony Saad'
-parser = argparse.ArgumentParser(description='This is the Turbulence Generator.')
-parser.add_argument('-l','--length', help='Domain size, lx ly lz',required=False, nargs='+', type=float)
-parser.add_argument('-n','--res', help='Grid resolution, nx ny nz',required=True, nargs='+', type=int)
-parser.add_argument('-m','--modes',help='Number of modes', required=False,type=int)
-parser.add_argument('-gpu','--cuda',help='Use a GPU if availalbe', required = False, action='store_true')
-parser.add_argument('-mp','--multiprocessor',help='Use the multiprocessing package', required = False,nargs='+', type=int)
-parser.add_argument('-o','--output', help='Write data to disk', required = False,action='store_true')
+parser = argparse.ArgumentParser(description='This is the Utah Turbulence Generator.')
+parser.add_argument('-l' , '--length', help='Domain size, lx ly lz',required=False, nargs='+', type=float)
+parser.add_argument('-n' , '--res'  , help='Grid resolution, nx ny nz',required=True, nargs='+', type=int)
+parser.add_argument('-m' , '--modes' , help='Number of modes', required=False,type=int)
+parser.add_argument('-gpu', '--cuda', help='Use a GPU if availalbe', required = False, action='store_true')
+parser.add_argument('-mp' , '--multiprocessor',help='Use the multiprocessing package', required = False,nargs='+', type=int)
+parser.add_argument('-o'  , '--output', help='Write data to disk', required = False,action='store_true')
+parser.add_argument('-spec', '--spectrum', help='Select spectrum. Defaults to cbc. Other options include: vkp, and power.', required = False, type=str)
 args = parser.parse_args()
 
 # parse grid resolution (nx, ny, nz)
@@ -151,11 +153,19 @@ if args.multiprocessor:
 elif args.cuda:
     use_cuda = True
 
-# specify which spectrum you want to use. Options are: cbc_spec, karman_spec, and power_spec
-whichspec = locals()['karman_spec']
+# specify which spectrum you want to use. Options are: cbc_spec, vkp_spec, and power_spec
+inputspec = args.spectrum
 
 # specify the spectrum name to append to all output filenames
-filespec = 'vkp'
+fileappend = inputspec + '_' + str(nx) + '.' + str(ny) + '.' + str(nz) + '_' + str(nmodes) + '_modes'
+
+print('input spec', inputspec)
+if inputspec != 'cbc' and inputspec != 'vkp' and inputspec != 'power':
+	print('Error: ', inputspec, ' is not a supported spectrum. Supported spectra are: cbc, vkp, and power. Please revise your input.')
+	exit()
+inputspec += '_spec'
+# now given a string name of the spectrum, find the corresponding function with the same name. use locals() because spectrum functions are defined in this module.
+whichspec = locals()[inputspec]
 
 # write to file
 enableIO = False  # enable writing to file
@@ -214,9 +224,9 @@ if enableIO:
     if use_threads:
         isoio.writefileparallel(u, v, w, dx, dy, dz, fileformat)
     else:
-        isoio.writefile('u.txt', 'x', dx, dy, dz, u, fileformat)
-        isoio.writefile('v.txt', 'y', dx, dy, dz, v, fileformat)
-        isoio.writefile('w.txt', 'z', dx, dy, dz, w, fileformat)
+        isoio.writefile('u_' + fileappend + '.txt', 'x', dx, dy, dz, u, fileformat)
+        isoio.writefile('v_' + fileappend + '.txt', 'y', dx, dy, dz, v, fileformat)
+        isoio.writefile('w_' + fileappend + '.txt', 'z', dx, dy, dz, w, fileformat)
 
 if savemat:
     data = {}  # CREATE empty dictionary
@@ -265,7 +275,7 @@ if checkdivergence:
 # verify that the generated velocities fit the spectrum
 knyquist, wavenumbers, tkespec = compute_tke_spectrum(u, v, w, lx, ly, lz, False)
 # save the generated spectrum to a text file for later post processing
-np.savetxt('tkespec_' + filespec + '_' + str(N) + '_' + str(nmodes) + '.txt', np.transpose([wavenumbers, tkespec]))
+np.savetxt('tkespec_' + fileappend + '.txt', np.transpose([wavenumbers, tkespec]))
 
 # -------------------------------------------------------------
 # compare spectra
@@ -308,7 +318,7 @@ array_toSave[2] = meanE*100.0
 array_toSave[3] = rmsE*100.0
 
 # save time and error values in a txt file
-np.savetxt('time_error_' + filespec + '_' + str(N) + '_' + str(nmodes) + '.txt',array_toSave)
+np.savetxt('time_error_' + fileappend + '.txt', array_toSave)
 #np.savetxt('cpuTime_' + filespec + '_' + str(N) + '_' + str(nmodes) + '.txt',time_elapsed)
 
 # -------------------------------------------------------------
@@ -336,5 +346,6 @@ if nx == ny == nz:
 else:
 	plt.title(str(nx) + 'x' + str(ny) + 'x' + str(nz))
 plt.legend(handles=[l1, l2], loc=1)
-fig.savefig('tkespec_' + filespec + '_' + str(N) + '.pdf')
+# fig.savefig('tkespec_' + filespec + '_' + str(N) + '.pdf')
+fig.savefig('tkespec_' + fileappend + '.pdf')
 plt.show()

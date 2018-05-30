@@ -45,21 +45,21 @@ optional arguments:
 # Examples
 
 ```
-python -n 32
+python example.py -n 32
 ```
 generates turbulence in a $32^3$ box using the default CBC spectrum along with the default length for that spectrum
 
 ```
-python -n 32 34 32 -l 0.565 0.6 0.565
+python example.py -n 32 34 32 -l 0.565 0.6 0.565
 ```
 generates turbulence in a domain of size lx = 0.2, ly = 0.3, and lz = 0.2 with grid resolution nx = 32, ny = 34, and nz = 32.
 
 ```
-python -n 32 -l 0.565 -m 1000 -spec vkp
+python example.py -n 32 -l 0.565 -m 1000 -spec vkp
 ```
 generates turbulence in a box of size 0.2x0.2x0.2 with resolution of 32^3 along with 1000 modes (resolution in wave space) and according tothe von-Karman-Pao spectrum
 
 ```
-python -n 32 -mp 2 1 2
+python example.py -n 32 -mp 2 1 2
 ```
 uses multiprocessors (or threads). Here, each spatial direction will have its own thread layout: 2 threads in the x direction, 1 thread in the y direction, and 2 threads in the z direction for atotal of 2x1x2 = 4 threads

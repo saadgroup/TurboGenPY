@@ -9,7 +9,8 @@ As the name indicates, this generator is written for Python, and specifically, P
 TurboGenPY supports the following turbulent energy spectra:
 1. CBC (Comte-Bellot, Corrsin)
 2. von-Karman Pao
-3. Power spectrum
+3. Kang, Chester, and Meneveau
+4. Your experimentally measured data
 
 You can certainly add your own spectrum. If you are using experimentally observed data, then mimic how the CBC spectrum is implemented via an interpolant.
 

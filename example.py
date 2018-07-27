@@ -51,7 +51,7 @@ parser.add_argument('-o'  , '--output', help='Write data to disk', required = Fa
 parser.add_argument('-spec', '--spectrum', help='Select spectrum. Defaults to cbc. Other options include: vkp, and kcm.', required = False, type=str)
 args = parser.parse_args()
 
-# parse grid resolution (nx, ny, nz)
+# parse grid resolution (nx, ny, nz). defaults to 32^3
 nx = 32
 ny = 32
 ny = 32

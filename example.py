@@ -108,7 +108,9 @@ elif args.cuda:
     use_cuda = True
 
 # specify which spectrum you want to use. Options are: cbc_spec, vkp_spec, and power_spec
-inputspec = args.spectrum
+inputspec = 'cbc'
+if args.spectrum:
+	inputspec = args.spectrum
 
 # specify the spectrum name to append to all output filenames
 fileappend = inputspec + '_' + str(nx) + '.' + str(ny) + '.' + str(nz) + '_' + str(nmodes) + '_modes'

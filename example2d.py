@@ -11,7 +11,7 @@ import numpy as np
 from numpy import pi
 import time
 import scipy.io
-from tkespec import compute_tke_spectrum
+from tkespec import compute_tke_spectrum2d
 import isoturb
 import isoturbo
 from fileformats import FileFormats
@@ -43,7 +43,7 @@ import argparse
 __author__ = 'Tony Saad'
 parser = argparse.ArgumentParser(description='This is the Utah Turbulence Generator.')
 parser.add_argument('-l' , '--length', help='Domain size, lx ly lz',required=False, nargs='+', type=float)
-parser.add_argument('-n' , '--res'  , help='Grid resolution, nx ny nz',required=True, nargs='+', type=int)
+parser.add_argument('-n' , '--res'  , help='Grid resolution, nx ny nz',required=False, nargs='+', type=int)
 parser.add_argument('-m' , '--modes' , help='Number of modes', required=False,type=int)
 parser.add_argument('-gpu', '--cuda', help='Use a GPU if availalbe', required = False, action='store_true')
 parser.add_argument('-mp' , '--multiprocessor',help='Use the multiprocessing package', required = False,nargs='+', type=int)
@@ -52,19 +52,16 @@ parser.add_argument('-spec', '--spectrum', help='Select spectrum. Defaults to cb
 args = parser.parse_args()
 
 # parse grid resolution (nx, ny, nz). defaults to 32^3
-nx = 32
-ny = 32
-nz = 32
-N = args.res
-if len(N) == 1:
-	nx = ny = nz = N[0]
-elif len(N) == 2:
-	print('Error! You must specify either all three grid resolutions or just one.')
-	exit()
-else:
-	nx = N[0]
-	ny = N[1]
-	nz = N[2]
+nx = 64
+ny = 64
+
+if args.res:
+	N = args.res
+	if len(N) == 1:
+		nx = ny = N[0]
+	else:
+		nx = N[0]
+		ny = N[1]
 
 # Default values for domain size in the x, y, and z directions. This value is typically
 # based on the largest length scale that your data has. For the cbc data,
@@ -72,40 +69,23 @@ else:
 # domain size is L = 2pi/15.
 lx = 9 * 2.0 * pi / 100.0
 ly = 9 * 2.0 * pi / 100.0
-lz = 9 * 2.0 * pi / 100.0
+
 # parse domain length, lx, ly, and lz
 L = args.length
 if L:
 	if len(L) == 1:
-		lx = ly = lz = L[0]
+		lx = ly = L[0]
 	elif len(L) == 2:
-		print('Error! You must specify either all three grid resolutions or just one.')
-		exit()
-	elif len(L) == 3:
 		lx = L[0]
 		ly = L[1]
-		lz = L[2]
 
 # parse number of modes
-nmodes = 100
+nmodes = 10000
 m = args.modes
 if m:
 	nmodes = int(m)
 	print(m)
 
-# specify whether you want to use threads or not to generate turbulence
-use_threads = False
-patches = [1,1,8]
-
-# specify whether you want to use CUDA or not
-use_cuda = False
-
-if args.multiprocessor:
-    use_threads = True
-    patches = args.multiprocessor
-    print('patches = ', patches)
-elif args.cuda:
-    use_cuda = True
 
 # specify which spectrum you want to use. Options are: cbc_spec, vkp_spec, and power_spec
 inputspec = 'cbc'
@@ -113,7 +93,7 @@ if args.spectrum:
 	inputspec = args.spectrum
 
 # specify the spectrum name to append to all output filenames
-fileappend = inputspec + '_' + str(nx) + '.' + str(ny) + '.' + str(nz) + '_' + str(nmodes) + '_modes'
+fileappend = inputspec + '_' + str(nx) + '.' + str(ny) + '_' + str(nmodes) + '_modes'
 
 print('input spec', inputspec)
 if inputspec != 'cbc' and inputspec != 'vkp' and inputspec != 'kcm':
@@ -136,25 +116,22 @@ fileformat = FileFormats.FLAT  # Specify the file format supported formats are: 
 savemat = False
 
 # compute the mean of the fluctuations for verification purposes
-computeMean = False
+computeMean = True
 
 # check the divergence of the generated velocity field
 checkdivergence = False
 
 # enter the smallest wavenumber represented by this spectrum
-wn1 = min(2.0*pi/lx, min(2.0*pi/ly, 2.0*pi/lz))
+wn1 = min(2.0*pi/lx, 2.0*pi/ly)
 # wn1 = 15  # determined here from cbc spectrum properties
 
 # summarize user input
 print('-----------------------------------')
 print('SUMMARY OF USER INPUT:')
-print('Domain size:', lx, ly, lz)
-print('Grid resolution:', nx, ny, nz)
+print('Domain size:', lx, ly)
+print('Grid resolution:', nx, ny)
 print('Fourier accuracy (modes):', nmodes)
-print('Using cuda:', use_cuda)
-print('Using CPU threads:', use_threads)
-if use_threads:
-	print('\t patch layout:', patches)
+
 
 # ------------------------------------------------------------------------------
 # END USER INPUT
@@ -165,73 +142,51 @@ if use_threads:
 # see wnn below
 dx = lx / nx
 dy = ly / ny
-dz = lz / nz
 
 t0 = time.time()
-if use_threads:
-    u, v, w = isoturbo.generate_isotropic_turbulence(patches, lx, ly, lz, nx, ny, nz, nmodes, wn1, whichspec)
-elif use_cuda:
-    u, v, w = cudaturbo.generate_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, whichspec)
-else:
-    u, v, w = isoturb.generate_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, whichspec)
+u, v = isoturb.generate_isotropic_turbulence(lx, ly, nx, ny, nmodes, wn1, whichspec)
 t1 = time.time()
 elapsed_time = t1 - t0
 print('it took me ', elapsed_time, 's to generate the isotropic turbulence.')
 
-if enableIO:
-    if use_threads:
-        isoio.writefileparallel(u, v, w, dx, dy, dz, fileformat)
-    else:
-        isoio.writefile('u_' + fileappend + '.txt', 'x', dx, dy, dz, u, fileformat)
-        isoio.writefile('v_' + fileappend + '.txt', 'y', dx, dy, dz, v, fileformat)
-        isoio.writefile('w_' + fileappend + '.txt', 'z', dx, dy, dz, w, fileformat)
-
-if savemat:
-    data = {}  # CREATE empty dictionary
-    data['U'] = u
-    data['V'] = v
-    data['W'] = w
-    scipy.io.savemat('uvw.mat', data)
 
 # compute mean velocities
 if computeMean:
 	umean = np.mean(u)
 	vmean = np.mean(v)
-	wmean = np.mean(w)
+
 	print('mean u = ', umean)
 	print('mean v = ', vmean)
-	print('mean w = ', wmean)
+
 
 	ufluc = umean - u
 	vfluc = vmean - v
-	wfluc = wmean - w
+
 
 	print('mean u fluct = ', np.mean(ufluc))
 	print('mean v fluct = ', np.mean(vfluc))
-	print('mean w fluct = ', np.mean(wfluc))
+
 
 	ufrms = np.mean(ufluc * ufluc)
 	vfrms = np.mean(vfluc * vfluc)
-	wfrms = np.mean(wfluc * wfluc)
+
 
 	print('u fluc rms = ', np.sqrt(ufrms))
 	print('v fluc rms = ', np.sqrt(vfrms))
-	print('w fluc rms = ', np.sqrt(wfrms))
+
 
 # check divergence
-if checkdivergence:
-    count = 0
-    for k in range(0, nz - 1):
-        for j in range(0, ny - 1):
-            for i in range(0, nx - 1):
-                src = (u[i + 1, j, k] - u[i, j, k]) / dx + (v[i, j + 1, k] - v[i, j, k]) / dy + (w[i, j, k + 1] - w[
-                    i, j, k]) / dz
-                if src > 1e-2:
-                    count += 1
-    print('cells with divergence: ', count)
+# if checkdivergence:
+#     count = 0
+# 	for j in range(0, ny - 1):
+# 		for i in range(0, nx - 1):
+# 			src = (u[i + 1, j, k] - u[i, j, k]) / dx + (v[i, j + 1, k] - v[i, j, k]) / dy + (w[i, j, k + 1]
+# 			if src > 1e-2:
+# 				count += 1
+#     print('cells with divergence: ', count)
 
 # verify that the generated velocities fit the spectrum
-knyquist, wavenumbers, tkespec = compute_tke_spectrum(u, v, w, lx, ly, lz, False)
+knyquist, wavenumbers, tkespec = compute_tke_spectrum2d(u, v, lx, ly, False)
 # save the generated spectrum to a text file for later post processing
 np.savetxt('tkespec_' + fileappend + '.txt', np.transpose([wavenumbers, tkespec]))
 
@@ -280,6 +235,11 @@ np.savetxt('time_error_' + fileappend + '.txt', array_toSave)
 #np.savetxt('cpuTime_' + filespec + '_' + str(N) + '_' + str(nmodes) + '.txt',time_elapsed)
 
 # -------------------------------------------------------------
+# plt.figure()
+# plt.imshow(u)
+# plt.figure()
+# plt.imshow(v)
+# plt.show()
 
 # plt.rc('text', usetex=True)
 plt.rc("font", size=10, family='serif')
@@ -299,7 +259,7 @@ plt.xlabel('$\kappa$ (1/m)')
 plt.ylabel('$E(\kappa)$ (m$^3$/s$^2$)')
 plt.grid()
 # plt.gcf().tight_layout()
-if nx == ny == nz:
+if nx == ny:
 	plt.title(str(nx) + '$^3$')
 else:
 	plt.title(str(nx) + 'x' + str(ny) + 'x' + str(nz))

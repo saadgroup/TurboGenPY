@@ -230,3 +230,95 @@ def generate_scalar_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, es
 
                 print('done. I am awesome!')
     return scalar_
+
+def generate_isotropic_turbulence(lx, ly, nx, ny, nmodes, wn1, especf):
+    """
+    This is the 2D version of the isotropic turbulence generator.
+    Given an energy spectrum, this function computes a discrete, staggered, three
+    dimensional velocity field in a box whose energy spectrum corresponds to the input energy
+    spectrum up to the Nyquist limit dictated by the grid
+
+    This function returns u, v as the axial and transverse velocities.
+
+    Parameters:
+    -----------
+    lx: float
+      The domain size in the x-direction.
+    ly: float
+      The domain size in the y-direction.
+    nx: integer
+      The number of grid points in the x-direction.
+    ny: integer
+      The number of grid points in the y-direction.
+    wn1: float
+      Smallest wavenumber. Typically dictated by spectrum or domain size.
+    espec: functor
+      A callback function representing the energy spectrum.
+    """
+
+    # generate cell centered x-grid
+    dx = lx / nx
+    dy = ly / ny
+
+    # START THE FUN!
+
+    # compute random angles
+    psi = np.random.uniform(-pi / 2.0, pi / 2.0, nmodes)
+
+    # highest wave number that can be represented on this grid (nyquist limit)
+    wnn = max(np.pi / dx, np.pi / dy)
+    print('I will generate data up to wave number: ', wnn)
+
+    # wavenumber step
+    dk = (wnn - wn1) / nmodes
+
+    # wavenumber at cell centers
+    wn = wn1 + 0.5 * dk + arange(0, nmodes) * dk
+
+    dkn = ones(nmodes) * dk
+
+    #   wavenumber vector from random angles
+    theta = np.random.uniform(0.0,2.0*np.pi,nmodes)
+    kx = cos(theta) * wn
+    ky = sin(theta) * wn
+
+    # create divergence vector
+    ktx = np.sin(kx * dx / 2.0) / dx
+    kty = np.sin(ky * dy / 2.0) / dy
+
+    # Enforce Mass Conservation
+    sxm = -kty
+    sym = ktx
+    
+    smag = sqrt(sxm * sxm + sym * sym)
+    sxm = sxm / smag
+    sym = sym / smag
+
+    # verify that the wave vector and sigma are perpendicular
+    kk = np.sum(ktx * sxm + kty * sym)
+    print('Orthogonality of k and sigma (divergence in wave space):', kk)
+
+    # get the modes
+    km = wn
+
+    espec = especf(km)
+    espec = espec.clip(0.0)
+
+    # generate turbulence at cell centers
+    um = sqrt(espec * dkn)
+    u_ = zeros([nx, ny])
+    v_ = zeros([nx, ny])
+
+    xc = dx / 2.0 + arange(0, nx) * dx
+    yc = dy / 2.0 + arange(0, ny) * dy
+    for j in range(0, ny):
+    	for i in range(0, nx):
+    		# for every grid point (i,j,k) do the fourier summation
+    		arg = kx * xc[i] + ky * yc[j]  - psi
+    		bmx = 2.0 * um * cos(arg - kx * dx / 2.0)
+    		bmy = 2.0 * um * cos(arg - ky * dy / 2.0)
+    		u_[i, j] = np.sum(bmx * sxm)
+    		v_[i, j] = np.sum(bmy * sym)
+
+    print('done generating turbulence.')
+    return u_, v_

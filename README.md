@@ -5,6 +5,11 @@ matches the input spectrum up to the discrete nyquist limit.
 
 As the name indicates, this generator is written for Python, and specifically, Python 3.x.
 
+To cite this work, please use the following citations:
+1. Tony Saad, Derek Cline, Rob Stoll, and James C. Sutherland. “Scalable Tools for Generating Synthetic Isotropic Turbulence with Arbitrary Spectra”. ,http://dx.doi.org/10.2514/1.J055230. (available online: Aug 25, 2016).
+2. Saad, T., & Sutherland, J. C. (2016). Comment on “Diffusion by a random velocity field” [Phys. Fluids 13, 22 (1970)]. Physics of Fluids (1994-Present), 28(11), 119101. https://doi.org/10.1063/1.4968528.
+3. Austin Richards, Tony Saad, and James C. Sutherland. “A Fast Turbulence Generator using Graphics Processing Units”, 2018 Fluid Dynamics Conference, AIAA AVIATION Forum, (AIAA 2018-3559). https://doi.org/10.2514/6.2018-3559.
+
 # Supported Spectra
 TurboGenPY supports the following turbulent energy spectra:
 1. CBC (Comte-Bellot, Corrsin)

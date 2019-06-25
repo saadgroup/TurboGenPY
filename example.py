@@ -48,7 +48,7 @@ parser.add_argument('-m' , '--modes' , help='Number of modes', required=False,ty
 parser.add_argument('-gpu', '--cuda', help='Use a GPU if availalbe', required = False, action='store_true')
 parser.add_argument('-mp' , '--multiprocessor',help='Use the multiprocessing package', required = False,nargs='+', type=int)
 parser.add_argument('-o'  , '--output', help='Write data to disk', required = False,action='store_true')
-parser.add_argument('-spec', '--spectrum', help='Select spectrum. Defaults to cbc. Other options include: vkp, and kcm.', required = False, type=str)
+parser.add_argument('-spec', '--spectrum', help='Select spectrum. Defaults to cbc. Other options include: vkp, kcm, and pq.', required = False, type=str)
 args = parser.parse_args()
 
 # parse grid resolution (nx, ny, nz). defaults to 32^3
@@ -116,8 +116,8 @@ if args.spectrum:
 fileappend = inputspec + '_' + str(nx) + '.' + str(ny) + '.' + str(nz) + '_' + str(nmodes) + '_modes'
 
 print('input spec', inputspec)
-if inputspec != 'cbc' and inputspec != 'vkp' and inputspec != 'kcm':
-	print('Error: ', inputspec, ' is not a supported spectrum. Supported spectra are: cbc, vkp, and power. Please revise your input.')
+if inputspec != 'cbc' and inputspec != 'vkp' and inputspec != 'kcm' and inputspec != 'pq':
+	print('Error: ', inputspec, ' is not a supported spectrum. Supported spectra are: cbc, vkp, kcm, and pq. Please revise your input.')
 	exit()
 inputspec += '_spectrum'
 # now given a string name of the spectrum, find the corresponding function with the same name. use locals() because spectrum functions are defined in this module.

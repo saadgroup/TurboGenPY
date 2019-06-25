@@ -231,7 +231,7 @@ def generate_scalar_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, es
                 print('done. I am awesome!')
     return scalar_
 
-def generate_isotropic_turbulence(lx, ly, nx, ny, nmodes, wn1, especf):
+def generate_isotropic_turbulence_2d(lx, ly, nx, ny, nmodes, wn1, especf):
     """
     This is the 2D version of the isotropic turbulence generator.
     Given an energy spectrum, this function computes a discrete, staggered, three

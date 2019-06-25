@@ -63,7 +63,7 @@ generates turbulence in a domain of size lx = 0.2, ly = 0.3, and lz = 0.2 with g
 ```
 python example.py -n 32 -l 0.565 -m 1000 -spec vkp
 ```
-generates turbulence in a box of size 0.2x0.2x0.2 with resolution of 32^3 along with 1000 modes (resolution in wave space) and according tothe von-Karman-Pao spectrum
+generates turbulence in a box of size 0.565^3 with resolution of 32^3 along with 1000 modes (resolution in wave space) and according to the von-Karman-Pao spectrum
 
 ```
 python example.py -n 32 -mp 2 1 2

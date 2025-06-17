@@ -144,7 +144,7 @@ dx = lx / nx
 dy = ly / ny
 
 t0 = time.time()
-u, v = isoturb.generate_isotropic_turbulence(lx, ly, nx, ny, nmodes, wn1, whichspec)
+u, v = isoturb.generate_isotropic_turbulence_2d(lx, ly, nx, ny, nmodes, wn1, whichspec)
 t1 = time.time()
 elapsed_time = t1 - t0
 print('it took me ', elapsed_time, 's to generate the isotropic turbulence.')

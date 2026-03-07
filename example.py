@@ -143,6 +143,8 @@ checkdivergence = False
 
 # enter the smallest wavenumber represented by this spectrum
 wn1 = min(2.0*pi/lx, min(2.0*pi/ly, 2.0*pi/lz))
+
+print('smallest wave number: ', wn1)
 # wn1 = 15  # determined here from cbc spectrum properties
 
 # summarize user input
@@ -232,6 +234,7 @@ if checkdivergence:
 
 # verify that the generated velocities fit the spectrum
 knyquist, wavenumbers, tkespec = compute_tke_spectrum(u, v, w, lx, ly, lz, False)
+print('nyquist limit:', knyquist)
 # save the generated spectrum to a text file for later post processing
 np.savetxt('tkespec_' + fileappend + '.txt', np.transpose([wavenumbers, tkespec]))
 
@@ -239,6 +242,7 @@ np.savetxt('tkespec_' + fileappend + '.txt', np.transpose([wavenumbers, tkespec]
 # compare spectra
 # integral comparison:
 # find index of nyquist limit
+print(wavenumbers)
 idx = (np.where(wavenumbers == knyquist)[0][0]) - 2
 
 # km0 = 2.0 * np.pi / lx
@@ -286,12 +290,12 @@ plt.rc("font", size=10, family='serif')
 
 fig = plt.figure(figsize=(3.5, 2.8), dpi=200, constrained_layout=True)
 
-wnn = np.arange(wn1, 2000)
+wnn = np.arange(wn1, 20000)
 
 l1, = plt.loglog(wnn, whichspec(wnn), 'k-', label='input')
 l2, = plt.loglog(wavenumbers[1:6], tkespec[1:6], 'bo--', markersize=3, markerfacecolor='w', markevery=1, label='computed')
 plt.loglog(wavenumbers[5:], tkespec[5:], 'bo--', markersize=3, markerfacecolor='w', markevery=4, label='computed')
-plt.axis([8, 10000, 1e-7, 1e-2])
+# plt.axis([8, 10000, 1e-7, 1e-2])
 # plt.xticks(fontsize=12)
 # plt.yticks(fontsize=12)
 plt.axvline(x=knyquist, linestyle='--', color='black')
@@ -303,7 +307,7 @@ if nx == ny == nz:
 	plt.title(str(nx) + '$^3$')
 else:
 	plt.title(str(nx) + 'x' + str(ny) + 'x' + str(nz))
-plt.legend(handles=[l1, l2], loc=1)
+# plt.legend(handles=[l1, l2], loc=1)
 # fig.savefig('tkespec_' + filespec + '_' + str(N) + '.pdf')
 fig.savefig('tkespec_' + fileappend + '.pdf')
 plt.show()

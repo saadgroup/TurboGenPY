@@ -73,7 +73,7 @@ def generate_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, especf):
     phi = 2.0 * pi * np.random.uniform(0.0, 1.0, nmodes)
     nu = np.random.uniform(0.0, 1.0, nmodes)
     theta = np.arccos(2.0 * nu - 1.0)
-    psi = np.random.uniform(-pi / 2.0, pi / 2.0, nmodes)
+    psi = np.random.uniform(0, pi, nmodes)
 
     # highest wave number that can be represented on this grid (nyquist limit)
     wnn = max(np.pi / dx, max(np.pi / dy, np.pi / dz))
@@ -84,7 +84,7 @@ def generate_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, especf):
 
     # wavenumber at cell centers
     wn = wn1 + 0.5 * dk + arange(0, nmodes) * dk
-
+    print('wn = ', wn)
     dkn = ones(nmodes) * dk
 
     #   wavenumber vector from random angles
@@ -120,7 +120,7 @@ def generate_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, especf):
     km = wn
 
     espec = especf(km)
-    espec = espec.clip(0.0)
+#     espec = espec.clip(0.0)
 
     # generate turbulence at cell centers
     um = sqrt(espec * dkn)
@@ -147,14 +147,70 @@ def generate_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, especf):
     print('done generating turbulence.')
     return u_, v_, w_
 
+import numpy as np
 
+def generate_periodic_scalar_turbulence(lx, ly, lz, nx, ny, nz, nmodes,wn1, especf):
+    """
+    Generates a periodic 3D scalar field using discrete Fourier modes.
+    """
+    # 1. Setup Grid (Cell-Centered)
+    dx, dy, dz = lx/nx, ly/ny, lz/nz
+    xc = np.linspace(dx/2, lx - dx/2, nx)
+    yc = np.linspace(dy/2, ly - dy/2, ny)
+    zc = np.linspace(dz/2, lz - dz/2, nz)
+    X, Y, Z = np.meshgrid(xc, yc, zc, indexing='ij')
+
+    # 2. Generate Discrete Wavevectors
+    # We pick random integer indices to ensure periodicity
+    # max_m defines the highest frequency harmonic allowed
+    max_m = max(nx, ny, nz) // 2 
+    
+    # Randomly sample integer modes (excluding 0,0,0)
+    mx = np.random.randint(-max_m, max_m, nmodes)
+    my = np.random.randint(-max_m, max_m, nmodes)
+    mz = np.random.randint(-max_m, max_m, nmodes)
+    
+    # Frequency scaling for periodicity: k = m * (2*pi / L)
+    kx = mx * (2.0 * np.pi / lx)
+    ky = my * (2.0 * np.pi / ly)
+    kz = mz * (2.0 * np.pi / lz)
+    
+    # Wavenumber magnitude
+    kn = np.sqrt(kx**2 + ky**2 + kz**2)
+    
+    # Handle the k=0 case to avoid division by zero in spectrum
+    kn[kn == 0] = 1e-10 
+
+    # 3. Calculate Amplitudes and Phases
+    # In discrete mode, energy is distributed per mode. 
+    # Since we are sampling randomly, we use an approximation for dk.
+    # A more robust way is to use the shell volume, but for nmodes >> 1:
+    dk = np.max(kn) / nmodes 
+    espec = especf(kn).clip(0.0)
+    
+    # um represents the amplitude of the fluctuation for this mode
+    um = np.sqrt(espec * dk)
+    phases = np.random.uniform(0, 2.0 * np.pi, nmodes)
+
+    # 4. Vectorized Summation (The "Awesome" part)
+    scalar_field = np.zeros((nx, ny, nz))
+    
+    print(f"Generating {nmodes} periodic modes on {nx}x{ny}x{nz} grid...")
+    for m in range(nmodes):
+        # arg = k_vec dot x_vec - phase
+        arg = kx[m]*X + ky[m]*Y + kz[m]*Z - phases[m]
+        scalar_field += 2.0 * um[m] * np.cos(arg)
+        
+    print("Done. Edge values now match perfectly!")
+    return scalar_field
+    
 def generate_scalar_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, especf):
     """
-    Given an energy spectrum, this function computes a discrete, staggered, three
-    dimensional velocity field in a box whose energy spectrum corresponds to the input energy
+    Given an energy spectrum, this function computes a discrete, cell centered, three
+    dimensional scalar field in a box whose spectrum corresponds to the input 
     spectrum up to the Nyquist limit dictated by the grid
 
-    This function returns u, v, w as the axial, transverse, and azimuthal velocities.
+    This function returns phi as a 3D scalar field.
 
     Parameters:
     -----------
@@ -173,7 +229,7 @@ def generate_scalar_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, es
     wn1: float
       Smallest wavenumber. Typically dictated by spectrum or domain size.
     espec: functor
-      A callback function representing the energy spectrum.
+      A callback function representing the spectrum.
     """
 
     # generate cell centered x-grid
@@ -220,15 +276,25 @@ def generate_scalar_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, es
     yc = dy / 2.0 + arange(0, ny) * dy
     zc = dz / 2.0 + arange(0, nz) * dz
 
-    for k in range(0, nz):
-        for j in range(0, ny):
-            for i in range(0, nx):
-                # for every grid point (i,j,k) do the fourier summation
-                arg = kx * xc[i] + ky * yc[j] + kz * zc[k] - psi
-                bm = 2.0 * um * cos(arg)
-                scalar_[i, j, k] = np.sum(bm)
+	# Create 3D coordinate grids
+    X, Y, Z = np.meshgrid(xc, yc, zc, indexing='ij')	
+	# Initialize scalar field
+    scalar_ = np.zeros((nx, ny, nz))
+	
+	# Sum the modes one by one (vectorized over the whole 3D grid at once)
+    for m in range(nmodes):
+        arg = kx[m] * X + ky[m] * Y + kz[m] * Z - psi[m]
+        scalar_ += 2.0 * um[m] * np.cos(arg)
 
-                print('done. I am awesome!')
+#     for k in range(0, nz):
+#         for j in range(0, ny):
+#             for i in range(0, nx):
+#                 # for every grid point (i,j,k) do the fourier summation
+#                 arg = kx * xc[i] + ky * yc[j] + kz * zc[k] - psi
+#                 bm = 2.0 * um * cos(arg)
+#                 scalar_[i, j, k] = np.sum(bm)
+# 
+#                 print('done. I am awesome!')
     return scalar_
 
 def generate_isotropic_turbulence_2d(lx, ly, nx, ny, nmodes, wn1, especf):

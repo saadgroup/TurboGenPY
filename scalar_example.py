@@ -64,7 +64,32 @@ def power_spec(k):
     espec = c0 * pow(k, -5.0 / 3.0) * pow(ES, 2.0 / 3.0) * fl * fh
     return espec
 
+    
+def tatarskii_spec(k):
+    """
+    Cn2: Structure constant (strength of turbulence)
+    L0: Outer scale (size of largest eddies)
+    l0: Inner scale (size of smallest eddies)
+    """
 
+    # Physical Constants for Stratosphere
+    Cn2 = 1e-11       # Refractive index structure constant
+    L0  = 100.0       # Outer scale (meters)
+    l0  = 0.01        # Inner scale (meters)
+    
+    # Derived parameters
+    k0 = 2.0 * np.pi / L0
+    km = 5.92 / l0
+    
+    # 3D Power Spectral Density (Tatarskii)
+    # The 0.033 is the Kolmogorov constant for scalars
+    phi_n = 0.033 * Cn2 * np.power(k**2 + k0**2, -11/6) * np.exp(-(k**2) / (km**2))
+    
+    # Convert 3D PSD to the 1D Energy Spectrum E(k) 
+    # This is what your 'um = sqrt(espec * dkn)' logic expects
+    espec = 4.0 * np.pi * k**2 * phi_n
+    
+    return espec    
 # ----------------------------------------------------------------------------------------------
 # __    __   ______   ________  _______         ______  __    __  _______   __    __  ________
 # |  \  |  \ /      \ |        \|       \       |      \|  \  |  \|       \ |  \  |  \|        \
@@ -81,7 +106,7 @@ def power_spec(k):
 use_parallel = False
 patches = [1, 1, 8]
 filespec = 'cbc'
-whichspec = cbc_spec
+whichspec = tatarskii_spec
 
 # set the number of modes you want to use to represent the velocity.
 nmodes = 500
@@ -119,7 +144,9 @@ wn1 = 15  # determined here from cbc spectrum properties
 # END USER INPUT
 # ------------------------------------------------------------------------------
 t0 = time.time()
-phi = isoturb.generate_scalar_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, whichspec)
+# phi = isoturb.generate_scalar_isotropic_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, whichspec)
+phi = isoturb.generate_periodic_scalar_turbulence(lx, ly, lz, nx, ny, nz, nmodes, wn1, whichspec)
+
 t1 = time.time()
 print('it took me ', t1 - t0, ' s to generate the isotropic turbulence.')
 
@@ -195,10 +222,12 @@ print('got here ')
 
 # fig = plt.figure(figsize=(3.5, 2.6), dpi=100)
 # plt.rc("font", size=10, family='serif')
+
 wnn = np.arange(wn1, 2000)
-l1, = plt.loglog(kcbc,ecbc, 'k-', label='input')
-plt.loglog(wnn, whichspec(wnn), 'k-', label='input')
-l2, = plt.loglog(wavenumbers, tkespec, 'bo-', markersize=4, markerfacecolor='w', markevery=1, label='computed')
+# l1, = plt.loglog(kcbc,ecbc, 'k-', label='input')
+# plt.loglog(wnn, whichspec(wnn), 'k-', label='input')
+# l2, = plt.loglog(wavenumbers, tkespec, 'bo-', markersize=4, markerfacecolor='w', markevery=1, label='computed')
+
 # plt.axis([8, 10000, 1e-7, 1e-2])
 # # plt.xticks(fontsize=12)
 # # plt.yticks(fontsize=12)
@@ -211,24 +240,27 @@ l2, = plt.loglog(wavenumbers, tkespec, 'bo-', markersize=4, markerfacecolor='w',
 # # plt.legend(handles=[l1,l2],loc=3)
 # # fig.savefig('tkespec_' + filespec + '_' + str(N) + '.pdf')
 #
-q, ((p1,p2),(p3,p4)) = plt.subplots(2,2)
 
-p1.plot(kcbc, ecbc, 'ob', kcbc, ecbc, '-')
+
+q, ((p1,p2),(p3,p4)) = plt.subplots(2,2)
+# print(np.std(phi))
+# p1.plot(kcbc, ecbc, 'ob', kcbc, ecbc, '-')
+p1.plot(wnn, whichspec(wnn), 'k-', label='input')
 p1.set_title('Interpolated Spectrum')
 p1.grid()
 p1.set_xlabel('wave number')
 p1.set_ylabel('E')
 
-p2.loglog(kcbc, ecbc, '-', wavenumbers, tkespec, 'ro-')
+p2.loglog(wnn, whichspec(wnn), '-', wavenumbers, tkespec, 'ro-')
 p2.axvline(x=knyquist, linestyle='--', color='black')
 p2.set_title('Spectrum of generated turbulence')
 p2.grid()
 
 # contour plot
-p3.matshow(phi[:,:,nz/2])
+p3.matshow(phi[:,:,nz//2])
 p3.set_title('phi')
 
-p4.matshow(phi[:,ny/2,:])
+p4.matshow(phi[:,ny//2,:])
 p4.set_title('phi')
 # #
-plt.show(1)
+plt.show()

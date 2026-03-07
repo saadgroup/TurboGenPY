@@ -80,14 +80,16 @@ class kcm_spectrum:
 class pq_spectrum:
   # Implements the Passot-Pouquet Spectrum
   # http://www.wseas.us/e-library/conferences/2011/Corfu/ASM/ASM-19.pdf
-  def __init__(self,ke=506, uavg=1.5):
+  def __init__(self,ke=506, uavg=1.0):
     self.uavg = uavg
     self.ke = ke
     self.kmin = 0
     self.kmax = 1e6
   def evaluate(self, k):
-    ke = self.ke
-    uavg = self.uavg    
-    kke = k/ke
-    espec = 16.0*uavg*uavg/ke * np.sqrt(2.0/np.pi) * pow(kke,4) * np.exp(-2.0*(kke)*(kke))
-    return espec
+  	l11 = 4.8e-4/2.0
+  	val = 2.0*np.pi/l11
+  	ke = val
+  	uavg = self.uavg
+  	kke = k/ke
+  	espec = 16.0*uavg*uavg/ke * np.sqrt(2.0/np.pi) * pow(kke,4) * np.exp(-2.0*(kke)*(kke))
+  	return espec

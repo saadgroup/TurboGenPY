@@ -138,8 +138,9 @@ def compute_tke_spectrum(u, v, w, lx, ly, lz, smooth):
     nz = len(w[0, 0, :])
 
     nt = nx * ny * nz
-    n = nx  # int(np.round(np.power(nt,1.0/3.0)))
-
+    n = int(np.round(np.power(nt,1.0/3.0)))
+    n = int(np.round(sqrt(nx**2 + ny**2 + nz**2)))
+    
     uh = fftn(u) / nt
     vh = fftn(v) / nt
     wh = fftn(w) / nt
@@ -150,7 +151,7 @@ def compute_tke_spectrum(u, v, w, lx, ly, lz, smooth):
     k0y = 2.0 * pi / ly
     k0z = 2.0 * pi / lz
 
-    knorm = (k0x + k0y + k0z) / 3.0
+    knorm =  min(k0x, min(k0y, k0z)) # 
     print('knorm = ', knorm)
 
     kxmax = nx / 2
@@ -195,7 +196,10 @@ def compute_tke_spectrum(u, v, w, lx, ly, lz, smooth):
         tkespecsmooth[0:4] = tke_spectrum[0:4]  # get the first 4 values from the original data
         tke_spectrum = tkespecsmooth
 
-    knyquist = knorm * min(nx, ny, nz) / 2
+    dx = lx/nx
+    dy = ly/ny
+    dz = lz/nz
+    knyquist = max(np.pi / dx, max(np.pi / dy, np.pi / dz))
 
     return knyquist, wave_numbers, tke_spectrum
 
